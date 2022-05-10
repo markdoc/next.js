@@ -33,7 +33,7 @@ function transformRecord(config) {
   return {output, components};
 }
 
-export function getSchema(schema) {
+exports.getSchema = function getSchema(schema) {
   const {output: tags, components: tagComponents} = transformRecord(
     schema.tags
   );
@@ -51,4 +51,4 @@ export function getSchema(schema) {
       ...nodeComponents,
     },
   };
-}
+};

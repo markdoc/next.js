@@ -1,9 +1,8 @@
-import {Tag} from '@markdoc/markdoc';
-import Head from 'next/head';
-import Link from 'next/link';
-import Script from 'next/script';
+const Head = require('next/head');
+const Link = require('next/link');
+const Script = require('next/script');
 
-export const comment = {
+exports.comment = {
   description: 'Use to comment the content itself',
   attributes: {},
   transform() {
@@ -11,13 +10,13 @@ export const comment = {
   },
 };
 
-export const head = {
+exports.head = {
   render: Head,
   description: 'Renders a Next.js head tag',
   attributes: {},
 };
 
-export const link = {
+exports.link = {
   render: Link,
   description: 'Displays a Next.js link',
   attributes: {
@@ -65,7 +64,7 @@ export const link = {
   },
 };
 
-export const script = {
+exports.script = {
   render: Script,
   description: 'Renders a Next.js script tag',
   attributes: {
