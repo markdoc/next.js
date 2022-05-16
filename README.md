@@ -49,7 +49,9 @@ See [our docs](https://markdoc.io/docs/nextjs) for more options.
 
 ## Contributing
 
-Contributions and feedback are welcome and encouraged. Follow these steps to set up the project:
+Contributions and feedback are welcomed and encouraged. Feel free to open PRs here, or open issues in the [Markdoc core repo](https://github.com/markdoc/markdoc).
+
+Follow these steps to set up the project:
 
 1. Run `npm install`
 1. Run `npm test`
