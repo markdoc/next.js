@@ -1,5 +1,5 @@
 const fs = require('fs');
-const {posix: path} = require('path');
+const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
@@ -24,7 +24,7 @@ async function gatherPartials(ast, schemaDir) {
       typeof file === 'string' &&
       !partials[file]
     ) {
-      const filepath = path.join(schemaDir, file);
+      const filepath = path.posix.join(schemaDir, file);
       // parsing is not done here because then we have to serialize and reload from JSON at runtime
       const content = await fs.promises.readFile(filepath, {encoding: 'utf8'});
 
@@ -54,7 +54,7 @@ async function load(source) {
   const {mode = 'static', schemaPath = DEFAULT_SCHEMA_PATH} =
     this.getOptions() || {};
 
-  const schemaDir = path.resolve(schemaPath || DEFAULT_SCHEMA_PATH);
+  const schemaDir = path.posix.resolve(schemaPath || DEFAULT_SCHEMA_PATH);
 
   // Grabs the path of the file relative to the `/pages` directory
   // to pass into the app props later.
@@ -121,7 +121,7 @@ async function load(source) {
   const partials = await gatherPartials.call(
     this,
     ast,
-    path.resolve(schemaDir, 'partials')
+    path.posix.resolve(schemaDir, 'partials')
   );
 
   // IDEA: consider making this an option per-page
@@ -134,10 +134,10 @@ async function load(source) {
 
     async function readDir(variable) {
       try {
-        const module = await resolve(schemaDir, variable);
-        return `import * as ${variable} from '${normalizeAbsolutePath(
-          module
-        )}'`;
+        const module = normalizeAbsolutePath(
+          await resolve(schemaDir, variable)
+        );
+        return `import * as ${variable} from '${module}'`;
       } catch (error) {
         return `const ${variable} = {};`;
       }
