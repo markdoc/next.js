@@ -37,6 +37,12 @@ async function gatherPartials(ast, schemaDir) {
 // Returning a JSX object is what allows fast refresh to work
 async function load(source) {
   const logger = this.getLogger('@markdoc/next.js');
+  const resolve = this.getResolve({
+    // https://webpack.js.org/api/loaders/#thisgetresolve
+    extensions: ['.js', '.jsx', '.json', '.ts', '.tsx', '...'],
+    preferRelative: true,
+  });
+
   const {mode = 'static', schemaPath = DEFAULT_SCHEMA_PATH} =
     this.getOptions() || {};
 
@@ -120,7 +126,7 @@ async function load(source) {
 
     async function readDir(variable) {
       try {
-        const module = require.resolve(path.join(schemaDir, variable));
+        const module = await resolve(schemaDir, variable);
         return `import * as ${variable} from '${module}'`;
       } catch (error) {
         return `const ${variable} = {};`;
@@ -155,7 +161,7 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema} from '${require.resolve('./runtime')}';
+import {getSchema} from '${await resolve(__dirname, './runtime')}';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support
