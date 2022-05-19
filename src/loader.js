@@ -161,7 +161,10 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema} from '${await path.resolve(__dirname, './runtime')}';
+import {getSchema} from '${(await resolve(__dirname, './runtime'))
+    .replace(/^[a-zA-Z]:/, '')
+    .split(path.sep)
+    .join(path.posix.sep)}';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support
