@@ -42,6 +42,8 @@ function evaluate(output) {
 }
 
 function options(config = {}) {
+  const resolve = async (context, file) =>
+    require.resolve(path.join(context, file));
   const webpackThis = {
     context: __dirname,
     getOptions() {
@@ -52,14 +54,8 @@ function options(config = {}) {
     },
     addDependency() {},
     addContextDependency() {},
-    resolve: (context, file, callback) => {
-      try {
-        const module = require.resolve(path.join(context, file));
-        callback(null, module);
-      } catch (error) {
-        callback(error);
-      }
-    },
+    getResolve: () => resolve,
+    resolve,
     resourcePath: '/Users/someone/a-next-js-repo/pages/test/index.md',
   };
 
