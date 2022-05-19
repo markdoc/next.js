@@ -4,6 +4,14 @@ const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
+function normalizeAbsolutePath(s) {
+  // https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
+  return s
+    .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
+    .split(path.sep)
+    .join(path.posix.sep);
+}
+
 async function gatherPartials(ast, schemaDir) {
   let partials = {};
 
@@ -126,7 +134,9 @@ async function load(source) {
 
     async function readDir(variable) {
       try {
-        const module = await resolve(schemaDir, variable);
+        const module = normalizeAbsolutePath(
+          await resolve(schemaDir, variable)
+        );
         return `import * as ${variable} from '${module}'`;
       } catch (error) {
         return `const ${variable} = {};`;
@@ -161,10 +171,9 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema} from '${(await resolve(__dirname, './runtime'))
-    .replace(/^[a-zA-Z]:/, '')
-    .split(path.sep)
-    .join(path.posix.sep)}';
+import {getSchema} from '${normalizeAbsolutePath(
+    await resolve(__dirname, './runtime')
+  )}';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support
