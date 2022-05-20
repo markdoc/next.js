@@ -7,6 +7,12 @@ const loader = require('../src/loader');
 
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
+function normalizeOperatingSystemPaths(s) {
+  console.log(process.cwd(), __dirname);
+
+  return s.replace(process.cwd(), '.').replace(/\\r\\n/g, '\n');
+}
+
 function evaluate(output) {
   const {code} = babel.transformSync(output);
   const exports = {};
@@ -90,7 +96,7 @@ test('should fail build if invalid `schemaPath` is used', async () => {
 test('file output is correct', async () => {
   const output = await callLoader(options(), source);
 
-  expect(output.replace(process.cwd(), '.')).toMatchSnapshot();
+  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
 
   const page = evaluate(output);
 
@@ -184,7 +190,7 @@ test('HMR', async () => {
     source
   );
 
-  expect(output.replace(process.cwd(), '.')).toMatchSnapshot();
+  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
 });
 
 test('mode="server"', async () => {
