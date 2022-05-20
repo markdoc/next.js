@@ -1,6 +1,7 @@
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
+const {EOL} = require('os');
 const babel = require('@babel/core');
 const React = require('react');
 const loader = require('../src/loader');
@@ -8,9 +9,13 @@ const loader = require('../src/loader');
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
 function normalizeOperatingSystemPaths(s) {
-  console.log(process.cwd(), __dirname);
+  const cwd = process
+    .cwd()
+    .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
+    .split(path.sep)
+    .join(path.posix.sep);
 
-  return s.replace(process.cwd(), '.').replace(/\\r\\n/g, '\n');
+  return s.replace(cwd, '.').replace(new RegExp(EOL, 'g'), '\n');
 }
 
 function evaluate(output) {
