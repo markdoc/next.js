@@ -1,7 +1,6 @@
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
-const {EOL} = require('os');
 const babel = require('@babel/core');
 const React = require('react');
 const loader = require('../src/loader');
@@ -15,7 +14,7 @@ function normalizeOperatingSystemPaths(s) {
     .split(path.sep)
     .join(path.posix.sep);
 
-  return s.replace(cwd, '.').replace(new RegExp(EOL, 'g'), '\n');
+  return s.replace(cwd, '.').replace(/\\r\\n/g, '\\n');
 }
 
 function evaluate(output) {
