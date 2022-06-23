@@ -40,7 +40,7 @@
   "bugs": {
     "url": "https://github.com/markdoc/next.js/issues"
   },
-  "homepage": "https://markdoc.io/docs/nextjs",
+  "homepage": "https://markdoc.dev/docs/nextjs",
   "jest": {
     "preset": "ts-jest/presets/js-with-babel"
   }
