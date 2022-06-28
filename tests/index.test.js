@@ -4,17 +4,18 @@ const path = require('path');
 const babel = require('@babel/core');
 const React = require('react');
 const loader = require('../src/loader');
+const windowsPathSepPattern = /\\/g;
+const escapedWindowsPathSepPattern = /\\\\/g;
 
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
 function normalizeOperatingSystemPaths(s) {
-  const cwd = process
-    .cwd()
-    .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
-    .split(path.sep)
-    .join(path.posix.sep);
+  const cwd = process.cwd().replace(windowsPathSepPattern, "\\\\");
 
-  return s.replace(cwd, '.').replace(/\\r\\n/g, '\\n');
+  return s
+    .replace(cwd, '.')
+    .replace(/\\r\\n/g, '\\n')
+    .replace(/from '\.(.*)'/, (path) => `${path.replace(escapedWindowsPathSepPattern, '/')}`)
 }
 
 function evaluate(output) {
