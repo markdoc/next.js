@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const babel = require('@babel/core');
 const React = require('react');
+const enhancedResolve = require('enhanced-resolve');
 const loader = require('../src/loader');
 
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
@@ -58,8 +59,6 @@ function evaluate(output) {
 }
 
 function options(config = {}) {
-  const resolve = async (context, file) =>
-    normalizeAbsolutePath(require.resolve(path.posix.join(context, file)));
   const webpackThis = {
     context: __dirname,
     getOptions() {
@@ -70,8 +69,15 @@ function options(config = {}) {
     },
     addDependency() {},
     addContextDependency() {},
-    getResolve: () => resolve,
-    resolve,
+    getResolve: (options) => {
+      const resolve = enhancedResolve.create(options);
+      return async (context, file) =>
+        new Promise((res, rej) =>
+          resolve(context, file, (err, result) =>
+            err ? rej(err) : res(result)
+          )
+        ).then(normalizeAbsolutePath);
+    },
     resourcePath: '/Users/someone/a-next-js-repo/pages/test/index.md',
   };
 
