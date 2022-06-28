@@ -5,12 +5,8 @@ const Markdoc = require('@markdoc/markdoc');
 const DEFAULT_SCHEMA_PATH = './markdoc';
 const windowsPathSepPattern = new RegExp("\\\\", "g");
 
-// https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
 function normalizeAbsolutePath(s) {
-  return s
-    .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
-    .split(path.sep)
-    .join(path.posix.sep);
+  return path.resolve(s).replace(windowsPathSepPattern, "\\\\")
 }
 
 async function gatherPartials(ast, schemaDir) {
@@ -135,9 +131,9 @@ async function load(source) {
 
     async function readDir(variable) {
       try {
-        const module = path
-          .resolve(normalizeAbsolutePath(await resolve(schemaDir, variable)))
-          .replace(windowsPathSepPattern, "\\\\");
+        const module = normalizeAbsolutePath(
+          await resolve(schemaDir, variable)
+        );
         return `import * as ${variable} from '${module}'`;
       } catch (error) {
         return `const ${variable} = {};`;
