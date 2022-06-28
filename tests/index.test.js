@@ -7,14 +7,20 @@ const loader = require('../src/loader');
 
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
-function normalizeOperatingSystemPaths(s) {
-  const cwd = process
-    .cwd()
+// https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
+function normalizeAbsolutePath(s) {
+  return s
     .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
     .split(path.sep)
     .join(path.posix.sep);
+}
 
-  return s.replace(cwd, '.').replace(/\\r\\n/g, '\\n');
+function normalizeOperatingSystemPaths(s) {
+  return s
+    .replace(normalizeAbsolutePath(process.cwd()), '.')
+    .split(path.sep)
+    .join(path.posix.sep)
+    .replace(/\/r\/n/g, '\\n');
 }
 
 function evaluate(output) {
@@ -53,7 +59,7 @@ function evaluate(output) {
 
 function options(config = {}) {
   const resolve = async (context, file) =>
-    require.resolve(path.join(context, file));
+    normalizeAbsolutePath(require.resolve(path.posix.join(context, file)));
   const webpackThis = {
     context: __dirname,
     getOptions() {
