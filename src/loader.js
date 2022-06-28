@@ -3,6 +3,7 @@ const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
+const windowsPathSepPattern = new RegExp("\\\\", "g");
 
 // https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
 function normalizeAbsolutePath(s) {
@@ -134,9 +135,9 @@ async function load(source) {
 
     async function readDir(variable) {
       try {
-        const module = normalizeAbsolutePath(
-          await resolve(schemaDir, variable)
-        );
+        const module = path
+          .resolve(normalizeAbsolutePath(await resolve(schemaDir, variable)))
+          .replace(windowsPathSepPattern, "\\\\");
         return `import * as ${variable} from '${module}'`;
       } catch (error) {
         return `const ${variable} = {};`;
