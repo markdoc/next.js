@@ -3,7 +3,7 @@ const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
-const windowsPathSepPattern = new RegExp("\\\\", "g");
+const windowsPathSepPattern = /\\/g;
 
 function normalizeAbsolutePath(s) {
   return path.resolve(s).replace(windowsPathSepPattern, "\\\\")
