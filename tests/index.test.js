@@ -16,13 +16,6 @@ function normalizeAbsolutePath(s) {
 }
 
 function normalizeOperatingSystemPaths(s) {
-  // const cwd =
-  //   .replace(/^[a-zA-Z]:/g, '') // replace C: for Windows
-  //   .split(path.sep)
-  //   .join(path.posix.sep);
-
-  // console.log(process.cwd(), process.cwd().replace(/^[a-zA-Z]:/g, ''), cwd);
-
   return s
     .replace(normalizeAbsolutePath(process.cwd()), '.')
     .split(path.sep)
