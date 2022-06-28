@@ -8,13 +8,18 @@ const loader = require('../src/loader');
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
 function normalizeOperatingSystemPaths(s) {
-  const cwd = process
-    .cwd()
-    .replace(/^[a-zA-Z]:/, '') // replace C: for Windows
-    .split(path.sep)
-    .join(path.posix.sep);
+  // const cwd =
+  //   .replace(/^[a-zA-Z]:/g, '') // replace C: for Windows
+  //   .split(path.sep)
+  //   .join(path.posix.sep);
 
-  return s.replace(cwd, '.').replace(/\\r\\n/g, '\\n');
+  // console.log(process.cwd(), process.cwd().replace(/^[a-zA-Z]:/g, ''), cwd);
+
+  return s
+    .replace(process.cwd(), '.')
+    .split(path.sep)
+    .join(path.posix.sep)
+    .replace(/\/r\/n/g, '\\n');
 }
 
 function evaluate(output) {
