@@ -5,7 +5,7 @@ const Markdoc = require('@markdoc/markdoc');
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
 function normalize(s) {
-  return s.replace(/\\/g, '\\\\');
+  return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
 
 async function gatherPartials(ast, schemaDir) {
@@ -253,7 +253,7 @@ module.exports = async function loader(source) {
     const result = await load.call(this, source);
     callback(null, result);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     callback(error);
   }
 };
