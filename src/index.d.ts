@@ -1,9 +1,9 @@
 import type {ElementType} from 'react';
-import type {Options, RenderNodes, Schema} from '@markdoc/markdoc';
+import type {Config, RenderableTreeNodes, Schema} from '@markdoc/markdoc';
 
 export type MarkdocNextJsPageProps = {
   markdoc?: {
-    content: RenderNodes;
+    content: RenderableTreeNodes;
     frontmatter: Record<string, any>;
     file: {
       path: string;
@@ -11,7 +11,7 @@ export type MarkdocNextJsPageProps = {
   };
 };
 
-export type MarkdocNextJsConfig = Options & {readonly source: string};
+export type MarkdocNextJsConfig = Config & {readonly source: string};
 
 export type MarkdocNextJsSchema<O extends Object = {}> = Schema<
   O & MarkdocNextJsConfig,
