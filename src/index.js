@@ -10,7 +10,10 @@ const withMarkdoc =
             options.defaultLoaders.babel,
             {
               loader: require.resolve('./loader'),
-              options: pluginOptions,
+              options: {
+                ...pluginOptions,
+                dir: options.dir,
+              },
             },
           ],
         });
