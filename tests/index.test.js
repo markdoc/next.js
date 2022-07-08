@@ -62,7 +62,10 @@ function options(config = {}) {
   const webpackThis = {
     context: __dirname,
     getOptions() {
-      return config;
+      return {
+        ...config,
+        dir: __dirname,
+      };
     },
     getLogger() {
       return console;
@@ -155,11 +158,11 @@ test('file output is correct', async () => {
 
 test.each([
   [undefined, undefined],
-  ['./tests/schemas/folders', 'markdoc1'],
-  ['./tests/schemas/folders/', 'markdoc1'],
-  ['./tests/schemas/files', 'markdoc2'],
-  ['tests/schemas/files', 'markdoc2'],
-  ['tests/schemas/typescript', source],
+  ['./schemas/folders', 'markdoc1'],
+  ['./schemas/folders/', 'markdoc1'],
+  ['./schemas/files', 'markdoc2'],
+  ['schemas/files', 'markdoc2'],
+  ['schemas/typescript', source],
 ])('Custom schema path ("%s")', async (schemaPath, expectedChild) => {
   const output = await callLoader(options({schemaPath}), source);
 
@@ -174,7 +177,7 @@ test.each([
 
 test('Partials', async () => {
   const output = await callLoader(
-    options({schemaPath: './tests/schemas/partials'}),
+    options({schemaPath: './schemas/partials'}),
     `${source}\n{% partial file="footer.md" /%}`
   );
 
@@ -186,7 +189,7 @@ test('Partials', async () => {
 
 test('Ejected config', async () => {
   const output = await callLoader(
-    options({schemaPath: './tests/schemas/ejectedConfig'}),
+    options({schemaPath: './schemas/ejectedConfig'}),
     `${source}\n{% $product %}`
   );
 

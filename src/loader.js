@@ -48,10 +48,13 @@ async function load(source) {
     preferRelative: true,
   });
 
-  const {mode = 'static', schemaPath = DEFAULT_SCHEMA_PATH} =
-    this.getOptions() || {};
+  const {
+    dir, // Root directory from Next.js (contains next.config.js)
+    mode = 'static',
+    schemaPath = DEFAULT_SCHEMA_PATH,
+  } = this.getOptions() || {};
 
-  const schemaDir = path.resolve(schemaPath || DEFAULT_SCHEMA_PATH);
+  const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
 
   // Grabs the path of the file relative to the `/pages` directory
   // to pass into the app props later.
