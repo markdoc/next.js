@@ -218,7 +218,7 @@ export async function ${dataFetchingFunction}(context) {
    * transform must be called in dataFetchingFunction to support server-side rendering while
    * accessing variables on the server
    */
-  const content = Markdoc.transform(ast, cfg);
+  const content = await Markdoc.transform(ast, cfg);
 
   return {
     // Removes undefined

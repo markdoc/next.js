@@ -27,7 +27,7 @@
     "typescript": "4.6.2"
   },
   "peerDependencies": {
-    "@markdoc/markdoc": "^0.1.1",
+    "@markdoc/markdoc": "^0.1.4",
     "next": "*",
     "react": "*"
   },
