@@ -40,7 +40,6 @@ async function gatherPartials(ast, schemaDir) {
 
 // Returning a JSX object is what allows fast refresh to work
 async function load(source) {
-  const logger = this.getLogger('@markdoc/next.js');
   // https://webpack.js.org/concepts/module-resolution/
   const resolve = this.getResolve({
     // https://webpack.js.org/api/loaders/#thisgetresolve
@@ -99,19 +98,19 @@ async function load(source) {
         case 'debug':
         case 'error':
         case 'info': {
-          logger[e.error.level](e.error.message);
+          console[e.error.level](e.error.message);
           break;
         }
         case 'warning': {
-          logger.warn(e.error.message);
+          console.warn(e.error.message);
           break;
         }
         case 'critical': {
-          logger.error(e.error.message);
+          console.error(e.error.message);
           break;
         }
         default: {
-          logger.log(e.error.message);
+          console.log(e.error.message);
           break;
         }
       }
