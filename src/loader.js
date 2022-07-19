@@ -65,9 +65,35 @@ async function load(source) {
 
   const ast = Markdoc.parse(source);
 
-  const errors = Markdoc.validate(ast)
-    // tags are not yet registered, so ignore these errors
-    .filter((e) => e.error.id !== 'tag-undefined')
+  const importAtBuildTime = async (resource) => {
+    // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
+    global.$RefreshReg$ = () => {};
+    global.$RefreshSig$ = () => () => {};
+    try {
+      const object = await this.importModule(
+        await resolve(schemaDir, resource)
+      );
+      return object ? object.default || object : {};
+    } catch (error) {
+      return undefined;
+    }
+  };
+
+  const cfg = {
+    tags: await importAtBuildTime('tags'),
+    nodes: await importAtBuildTime('nodes'),
+    functions: await importAtBuildTime('functions'),
+    ...(await importAtBuildTime('config')),
+  };
+
+  const errors = Markdoc.validate(ast, cfg)
+    .filter((e) => {
+      // tags are not yet registered, so ignore these errors
+      if (e.error.id === 'tag-undefined' && !cfg.tags) {
+        return false;
+      }
+      return true;
+    })
     .filter((e) => {
       switch (e.error.level) {
         case 'debug':
@@ -132,7 +158,7 @@ async function load(source) {
   try {
     const directoryExists = await fs.promises.stat(schemaDir);
 
-    async function readDir(variable) {
+    async function importAtRuntime(variable) {
       try {
         const module = await resolve(schemaDir, variable);
         return `import * as ${variable} from '${normalize(module)}'`;
@@ -143,10 +169,10 @@ async function load(source) {
 
     if (directoryExists) {
       schemaCode = `
-        ${await readDir('config')}
-        ${await readDir('tags')}
-        ${await readDir('nodes')}
-        ${await readDir('functions')}
+        ${await importAtRuntime('config')}
+        ${await importAtRuntime('tags')}
+        ${await importAtRuntime('nodes')}
+        ${await importAtRuntime('functions')}
         const schema = {
           tags: tags ? (tags.default || tags) : {},
           nodes: nodes ? (nodes.default || nodes) : {},
