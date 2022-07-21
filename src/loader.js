@@ -4,6 +4,8 @@ const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
+function noop() {}
+
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
@@ -51,6 +53,7 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
+    nextRuntime,
   } = this.getOptions() || {};
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
@@ -64,83 +67,79 @@ async function load(source) {
 
   const ast = Markdoc.parse(source);
 
-  const importAtBuildTime = async (resource) => {
-    // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
-    global.$RefreshReg$ = () => {};
-    global.$RefreshSig$ = () => () => {};
-    try {
-      const object = await this.importModule(
-        await resolve(schemaDir, resource)
-      );
-      return object ? object.default || object : {};
-    } catch (error) {
-      return undefined;
+  // Only run validation when during client compilation
+  if (!nextRuntime) {
+    const importAtBuildTime = async (resource) => {
+      // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
+      global.$RefreshReg$ = global.$RefreshReg$ || noop;
+      global.$RefreshSig$ = global.$RefreshReg$ || (() => noop);
+      try {
+        const object = await this.importModule(
+          await resolve(schemaDir, resource)
+        );
+        return object ? object.default || object : {};
+      } catch (error) {
+        return undefined;
+      }
+    };
+
+    const cfg = {
+      tags: await importAtBuildTime('tags'),
+      nodes: await importAtBuildTime('nodes'),
+      functions: await importAtBuildTime('functions'),
+      ...(await importAtBuildTime('config')),
+    };
+
+    const errors = Markdoc.validate(ast, cfg)
+      .filter((e) => {
+        switch (e.error.level) {
+          case 'debug':
+          case 'error':
+          case 'info': {
+            console[e.error.level](e.error.message);
+            break;
+          }
+          case 'warning': {
+            console.warn(e.error.message);
+            break;
+          }
+          case 'critical': {
+            console.error(e.error.message);
+            break;
+          }
+          default: {
+            console.log(e.error.message);
+            break;
+          }
+        }
+        return e.error.level === 'critical';
+      })
+      .flatMap((e) => {
+        const lines = source.split('\n');
+
+        const message = [e.error.message, ...lines.slice(...e.lines)];
+
+        if (
+          e.error &&
+          e.error.location &&
+          e.error.location.start &&
+          e.error.location.start.offset
+        ) {
+          const prev = lines.slice(0, e.lines[0]).join('\n').length;
+          const diff = e.error.location.start.offset - prev;
+
+          const pointer = `${' '.repeat(diff)}^`;
+          message.push(pointer);
+        }
+
+        // add extra newline between errors
+        message.push('');
+        return message;
+      });
+
+    if (errors.length) {
+      throw new Error(errors.join('\n'));
     }
-  };
-
-  const cfg = {
-    tags: await importAtBuildTime('tags'),
-    nodes: await importAtBuildTime('nodes'),
-    functions: await importAtBuildTime('functions'),
-    ...(await importAtBuildTime('config')),
-  };
-
-  const errors = Markdoc.validate(ast, cfg)
-    .filter((e) => {
-      // tags are not yet registered, so ignore these errors
-      if (e.error.id === 'tag-undefined' && !cfg.tags) {
-        return false;
-      }
-      return true;
-    })
-    .filter((e) => {
-      switch (e.error.level) {
-        case 'debug':
-        case 'error':
-        case 'info': {
-          console[e.error.level](e.error.message);
-          break;
-        }
-        case 'warning': {
-          console.warn(e.error.message);
-          break;
-        }
-        case 'critical': {
-          console.error(e.error.message);
-          break;
-        }
-        default: {
-          console.log(e.error.message);
-          break;
-        }
-      }
-      return e.error.level === 'critical';
-    })
-    .flatMap((e) => {
-      const lines = source.split('\n');
-
-      const message = [e.error.message, ...lines.slice(...e.lines)];
-
-      if (
-        e.error &&
-        e.error.location &&
-        e.error.location.start &&
-        e.error.location.start.offset
-      ) {
-        const prev = lines.slice(0, e.lines[0]).join('\n').length;
-        const diff = e.error.location.start.offset - prev;
-
-        const pointer = `${' '.repeat(diff)}^`;
-        message.push(pointer);
-      }
-
-      // add extra newline between errors
-      message.push('');
-      return message;
-    });
-
-  if (errors.length) {
-    throw new Error(errors.join('\n'));
   }
 
   const partials = await gatherPartials.call(
