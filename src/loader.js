@@ -57,6 +57,7 @@ async function load(source) {
   } = this.getOptions() || {};
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
+  const ast = Markdoc.parse(source);
 
   // Grabs the path of the file relative to the `/pages` directory
   // to pass into the app props later.
@@ -65,14 +66,16 @@ async function load(source) {
   // https://nextjs.org/docs/advanced-features/src-directory
   const filepath = this.resourcePath.split('pages')[1];
 
-  const ast = Markdoc.parse(source);
-
   // Only run validation when during client compilation
   if (!nextRuntime) {
+    let previousRefreshReg = global.$RefreshReg$;
+    let previousRefreshSig = global.$RefreshSig$;
+
+    // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
+    global.$RefreshReg$ = noop;
+    global.$RefreshSig$ = () => noop;
+
     const importAtBuildTime = async (resource) => {
-      // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
-      global.$RefreshReg$ = global.$RefreshReg$ || noop;
-      global.$RefreshSig$ = global.$RefreshReg$ || (() => noop);
       try {
         const object = await this.importModule(
           await resolve(schemaDir, resource)
@@ -140,6 +143,9 @@ async function load(source) {
     if (errors.length) {
       throw new Error(errors.join('\n'));
     }
+
+    global.$RefreshReg$ = previousRefreshReg;
+    global.$RefreshSig$ = previousRefreshSig;
   }
 
   const partials = await gatherPartials.call(
