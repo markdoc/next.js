@@ -13,6 +13,7 @@ const withMarkdoc =
               options: {
                 ...pluginOptions,
                 dir: options.dir,
+                nextRuntime: options.nextRuntime,
               },
             },
           ],

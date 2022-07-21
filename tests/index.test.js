@@ -65,6 +65,7 @@ function options(config = {}) {
       return {
         ...config,
         dir: __dirname,
+        nextRuntime: 'nodejs',
       };
     },
     getLogger() {
