@@ -75,6 +75,7 @@ async function load(source) {
     global.$RefreshReg$ = noop;
     global.$RefreshSig$ = () => noop;
 
+    // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
       try {
         const object = await this.importModule(
@@ -162,6 +163,7 @@ async function load(source) {
   try {
     const directoryExists = await fs.promises.stat(schemaDir);
 
+    // This creates import strings that cause the config to be imported runtime
     async function importAtRuntime(variable) {
       try {
         const module = await resolve(schemaDir, variable);
