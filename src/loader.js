@@ -180,10 +180,10 @@ async function load(source) {
         ${await importAtRuntime('nodes')}
         ${await importAtRuntime('functions')}
         const schema = {
-          tags: tags ? (tags.default || tags) : {},
-          nodes: nodes ? (nodes.default || nodes) : {},
-          functions: functions ? (functions.default || functions) : {},
-          ...(config ? (config.default || config) : {}),
+          tags: defaultObject(tags),
+          nodes: defaultObject(nodes),
+          functions: defaultObject(functions),
+          ...defaultObject(config),
         };`
         .trim()
         .replace(/^\s+/gm, '');
@@ -201,7 +201,9 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema} from '${normalize(await resolve(__dirname, './runtime'))}';
+import {getSchema, defaultObject} from '${normalize(
+    await resolve(__dirname, './runtime')
+  )}';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support

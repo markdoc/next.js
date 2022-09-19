@@ -52,3 +52,8 @@ exports.getSchema = function getSchema(schema) {
     },
   };
 };
+
+exports.defaultObject = function defaultObject(o) {
+  if (Object.prototype.hasOwnProperty.call(o, 'default')) return o.default;
+  return o || {};
+};
