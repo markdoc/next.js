@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
+const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
@@ -81,7 +82,7 @@ async function load(source) {
         const object = await this.importModule(
           await resolve(schemaDir, resource)
         );
-        return object ? object.default || object : {};
+        return defaultObject(object);
       } catch (error) {
         return undefined;
       }
@@ -95,6 +96,9 @@ async function load(source) {
     };
 
     const errors = Markdoc.validate(ast, cfg)
+      // TODO(#206) remove this filter
+      // tags are not yet registered, so ignore these errors
+      .filter((e) => e.error.id !== 'tag-undefined')
       .filter((e) => {
         switch (e.error.level) {
           case 'debug':
