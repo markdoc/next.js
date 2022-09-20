@@ -69,12 +69,16 @@ async function load(source) {
 
   // Only run validation when during client compilation
   if (!nextRuntime) {
+    // This is just to get subcompilation working with Next.js's fast refresh
     let previousRefreshReg = global.$RefreshReg$;
     let previousRefreshSig = global.$RefreshSig$;
-
+    let previousDocument = global.$RefreshSig$;
+    let previousElement = global.Element;
     // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
     global.$RefreshReg$ = noop;
     global.$RefreshSig$ = () => noop;
+    global.document = {querySelector: noop};
+    global.Element = class Element {};
 
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
@@ -96,9 +100,6 @@ async function load(source) {
     };
 
     const errors = Markdoc.validate(ast, cfg)
-      // TODO(#206) remove this filter
-      // tags are not yet registered, so ignore these errors
-      .filter((e) => e.error.id !== 'tag-undefined')
       .filter((e) => {
         switch (e.error.level) {
           case 'debug':
@@ -151,6 +152,8 @@ async function load(source) {
 
     global.$RefreshReg$ = previousRefreshReg;
     global.$RefreshSig$ = previousRefreshSig;
+    global.document = previousDocument;
+    global.Element = previousElement;
   }
 
   const partials = await gatherPartials.call(
