@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
+const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
@@ -68,12 +69,16 @@ async function load(source) {
 
   // Only run validation when during client compilation
   if (!nextRuntime) {
+    // This is just to get subcompilation working with Next.js's fast refresh
     let previousRefreshReg = global.$RefreshReg$;
     let previousRefreshSig = global.$RefreshSig$;
-
+    let previousDocument = global.$RefreshSig$;
+    let previousElement = global.Element;
     // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
     global.$RefreshReg$ = noop;
     global.$RefreshSig$ = () => noop;
+    global.document = {querySelector: noop};
+    global.Element = class Element {};
 
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
@@ -81,7 +86,7 @@ async function load(source) {
         const object = await this.importModule(
           await resolve(schemaDir, resource)
         );
-        return object ? object.default || object : {};
+        return defaultObject(object);
       } catch (error) {
         return undefined;
       }
@@ -147,6 +152,8 @@ async function load(source) {
 
     global.$RefreshReg$ = previousRefreshReg;
     global.$RefreshSig$ = previousRefreshSig;
+    global.document = previousDocument;
+    global.Element = previousElement;
   }
 
   const partials = await gatherPartials.call(
