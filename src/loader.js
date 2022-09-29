@@ -72,12 +72,15 @@ async function load(source) {
     // This is just to get subcompilation working with Next.js's fast refresh
     let previousRefreshReg = global.$RefreshReg$;
     let previousRefreshSig = global.$RefreshSig$;
-    let previousDocument = global.$RefreshSig$;
+    let previousDocument = global.document;
     let previousElement = global.Element;
     // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
     global.$RefreshReg$ = noop;
     global.$RefreshSig$ = () => noop;
-    global.document = {querySelector: noop};
+    global.document = previousDocument || {
+      querySelector: noop,
+      querySelectorAll: noop,
+    };
     global.Element = class Element {};
 
     // This imports the config as an in-memory object
@@ -100,6 +103,8 @@ async function load(source) {
     };
 
     const errors = Markdoc.validate(ast, cfg)
+      // tags are not yet registered, so ignore these errors
+      .filter((e) => e.error.id !== 'tag-undefined')
       .filter((e) => {
         switch (e.error.level) {
           case 'debug':
