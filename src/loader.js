@@ -75,13 +75,13 @@ async function load(source) {
     let previousDocument = global.document;
     let previousElement = global.Element;
     // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
-    global.$RefreshReg$ = noop;
-    global.$RefreshSig$ = () => noop;
+    global.$RefreshReg$ = previousRefreshReg || noop;
+    global.$RefreshSig$ = previousRefreshSig || (() => noop);
     global.document = previousDocument || {
       querySelector: noop,
       querySelectorAll: noop,
     };
-    global.Element = class Element {};
+    global.Element = previousElement || class Element {};
 
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
