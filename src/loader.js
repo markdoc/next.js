@@ -71,7 +71,7 @@ async function load(source) {
   if (nextRuntime === 'nodejs') {
     // This is just to get subcompilation working with Next.js's fast refresh
     let previousRequire = global.require;
-    global.require = previousRequire || require || __webpack_require__;
+    global.require = previousRequire || require || __non_webpack_require__;
 
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
