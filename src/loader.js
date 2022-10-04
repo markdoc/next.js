@@ -5,8 +5,6 @@ const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
-function noop() {}
-
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
