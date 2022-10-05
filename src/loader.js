@@ -5,8 +5,6 @@ const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
-function noop() {}
-
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
@@ -67,21 +65,11 @@ async function load(source) {
   // https://nextjs.org/docs/advanced-features/src-directory
   const filepath = this.resourcePath.split('pages')[1];
 
-  // Only run validation when during client compilation
-  if (!nextRuntime) {
+  // Only run validation when during server compilation
+  if (nextRuntime === 'nodejs') {
     // This is just to get subcompilation working with Next.js's fast refresh
-    let previousRefreshReg = global.$RefreshReg$;
-    let previousRefreshSig = global.$RefreshSig$;
-    let previousDocument = global.document;
-    let previousElement = global.Element;
-    // https://github.com/pmmmwh/react-refresh-webpack-plugin/issues/176#issuecomment-683150213
-    global.$RefreshReg$ = previousRefreshReg || noop;
-    global.$RefreshSig$ = previousRefreshSig || (() => noop);
-    global.document = previousDocument || {
-      querySelector: noop,
-      querySelectorAll: noop,
-    };
-    global.Element = previousElement || class Element {};
+    let previousRequire = global.require;
+    global.require = previousRequire || require || __non_webpack_require__;
 
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
@@ -155,10 +143,7 @@ async function load(source) {
       throw new Error(errors.join('\n'));
     }
 
-    global.$RefreshReg$ = previousRefreshReg;
-    global.$RefreshSig$ = previousRefreshSig;
-    global.document = previousDocument;
-    global.Element = previousElement;
+    global.require = previousRequire;
   }
 
   const partials = await gatherPartials.call(
