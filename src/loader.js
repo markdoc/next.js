@@ -4,7 +4,7 @@ const Markdoc = require('@markdoc/markdoc');
 const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
-const BUILD_IMPORT_TIMEOUT = 1000;
+const BUILD_IMPORT_TIMEOUT = 5000;
 
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
