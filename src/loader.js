@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const Markdoc = require('@markdoc/markdoc');
-const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
@@ -52,7 +51,6 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
-    nextRuntime,
   } = this.getOptions() || {};
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
@@ -64,87 +62,6 @@ async function load(source) {
   // all pages will be located under either pages/ or src/pages/
   // https://nextjs.org/docs/advanced-features/src-directory
   const filepath = this.resourcePath.split('pages')[1];
-
-  // Only run validation when during server compilation
-  if (nextRuntime === 'nodejs') {
-    // This is just to get subcompilation working with Next.js's fast refresh
-    let previousRequire = global.require;
-    global.require = previousRequire || require || __non_webpack_require__;
-
-    // This imports the config as an in-memory object
-    const importAtBuildTime = async (resource) => {
-      try {
-        const object = await this.importModule(
-          await resolve(schemaDir, resource)
-        );
-        return defaultObject(object);
-      } catch (error) {
-        return undefined;
-      }
-    };
-
-    const cfg = {
-      tags: await importAtBuildTime('tags'),
-      nodes: await importAtBuildTime('nodes'),
-      functions: await importAtBuildTime('functions'),
-      ...(await importAtBuildTime('config')),
-    };
-
-    const errors = Markdoc.validate(ast, cfg)
-      // tags are not yet registered, so ignore these errors
-      .filter((e) => e.error.id !== 'tag-undefined')
-      .filter((e) => {
-        switch (e.error.level) {
-          case 'debug':
-          case 'error':
-          case 'info': {
-            console[e.error.level](e.error.message);
-            break;
-          }
-          case 'warning': {
-            console.warn(e.error.message);
-            break;
-          }
-          case 'critical': {
-            console.error(e.error.message);
-            break;
-          }
-          default: {
-            console.log(e.error.message);
-            break;
-          }
-        }
-        return e.error.level === 'critical';
-      })
-      .flatMap((e) => {
-        const lines = source.split('\n');
-
-        const message = [e.error.message, ...lines.slice(...e.lines)];
-
-        if (
-          e.error &&
-          e.error.location &&
-          e.error.location.start &&
-          e.error.location.start.offset
-        ) {
-          const prev = lines.slice(0, e.lines[0]).join('\n').length;
-          const diff = e.error.location.start.offset - prev;
-
-          const pointer = `${' '.repeat(diff)}^`;
-          message.push(pointer);
-        }
-
-        // add extra newline between errors
-        message.push('');
-        return message;
-      });
-
-    if (errors.length) {
-      throw new Error(errors.join('\n'));
-    }
-
-    global.require = previousRequire;
-  }
 
   const partials = await gatherPartials.call(
     this,
