@@ -4,6 +4,7 @@ const Markdoc = require('@markdoc/markdoc');
 const {defaultObject} = require('./runtime');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
+const BUILD_IMPORT_TIMEOUT = 1000;
 
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
@@ -74,9 +75,10 @@ async function load(source) {
     // This imports the config as an in-memory object
     const importAtBuildTime = async (resource) => {
       try {
-        const object = await this.importModule(
-          await resolve(schemaDir, resource)
-        );
+        const object = await Promise.race([
+          this.importModule(await resolve(schemaDir, resource)),
+          new Promise((r, reject) => setTimeout(reject, BUILD_IMPORT_TIMEOUT)),
+        ]);
         return defaultObject(object);
       } catch (error) {
         return undefined;
