@@ -1,6 +1,6 @@
 {
   "name": "@markdoc/next.js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Stripe, Inc.",
   "description": "Markdoc plugin for Next.js",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "typescript": "4.6.2"
   },
   "peerDependencies": {
-    "@markdoc/markdoc": "^0.1.4",
+    "@markdoc/markdoc": "*",
     "next": "*",
     "react": "*"
   },
