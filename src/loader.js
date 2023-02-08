@@ -4,13 +4,11 @@ const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
-const tokenizer = new Markdoc.Tokenizer({allowComments: true});
-
 function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
 
-async function gatherPartials(ast, schemaDir) {
+async function gatherPartials(ast, schemaDir, tokenizer) {
   let partials = {};
 
   for (const node of ast.walk()) {
@@ -32,7 +30,7 @@ async function gatherPartials(ast, schemaDir) {
         partials = {
           ...partials,
           [file]: content,
-          ...(await gatherPartials.call(this, ast, schemaDir)),
+          ...(await gatherPartials.call(this, ast, schemaDir, tokenizer)),
         };
       }
     }
@@ -54,7 +52,10 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
+    tokenizerOptions = undefined,
   } = this.getOptions() || {};
+
+  const tokenizer = new Markdoc.Tokenizer(tokenizerOptions);
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
@@ -70,7 +71,8 @@ async function load(source) {
   const partials = await gatherPartials.call(
     this,
     ast,
-    path.resolve(schemaDir, 'partials')
+    path.resolve(schemaDir, 'partials'),
+    tokenizer
   );
 
   // IDEA: consider making this an option per-page
@@ -128,7 +130,9 @@ import {getSchema, defaultObject} from '${normalize(
  */
 ${schemaCode}
 
-const tokenizer = new Markdoc.Tokenizer({allowComments: true});
+const tokenizer = new Markdoc.Tokenizer(${
+    tokenizerOptions ? JSON.stringify(tokenizerOptions) : ''
+  });
 
 /**
  * Source will never change at runtime, so parse happens at the file root
