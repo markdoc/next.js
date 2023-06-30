@@ -52,7 +52,7 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
-    tokenizerOptions = undefined,
+    tokenizerOptions = {allowComments: true},
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(tokenizerOptions);

@@ -13,7 +13,7 @@ import {getSchema, defaultObject} from './src/runtime.js';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer();
+const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
@@ -103,7 +103,7 @@ import {getSchema, defaultObject} from './src/runtime.js';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer();
+const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
