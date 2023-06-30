@@ -1,4 +1,5 @@
 const Head = require('next/head');
+const Image = require('next/image');
 const Link = require('next/link');
 const Script = require('next/script');
 
@@ -14,6 +15,53 @@ exports.head = {
   render: Head,
   description: 'Renders a Next.js head tag',
   attributes: {},
+};
+
+exports.image = {
+  render: Image,
+  description: 'Renders a Next.js image tag',
+  // https://nextjs.org/docs/app/api-reference/components/image
+  attributes: {
+    src: {
+      type: String,
+      required: true,
+    },
+    alt: {
+      type: String,
+      required: true,
+    },
+    width: {
+      type: Number,
+      required: true,
+    },
+    height: {
+      type: Number,
+      required: true,
+    },
+    fill: {
+      type: Boolean,
+    },
+    sizes: {
+      type: String,
+    },
+    quality: {
+      type: Number,
+    },
+    priority: {
+      type: Boolean,
+    },
+    placeholder: {
+      type: String,
+      matches: ['blur', 'empty'],
+    },
+    loading: {
+      type: String,
+      matches: ['lazy', 'eager'],
+    },
+    blurDataURL: {
+      type: String,
+    },
+  },
 };
 
 exports.link = {
