@@ -201,8 +201,6 @@ ${appDir ? '' : `export async function ${dataFetchingFunction}(context) {
   };
 }`}
 
-${appDir ? `export const metadata = frontmatter.metadata;` : ''}
-
 export default${appDir ? ' async' : ''} function MarkdocComponent(${appDir ? '' : 'props'}) {
   ${appDir ? `const props = await getProps();` : ''}
   // Only execute HMR code in development
