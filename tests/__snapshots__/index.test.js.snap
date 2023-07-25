@@ -33,7 +33,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-export async function getStaticProps(context) {
+async function getProps(context = {}) {
   const partials = {};
 
   // Ensure Node.transformChildren is available
@@ -61,23 +61,119 @@ export async function getStaticProps(context) {
    */
   const content = await Markdoc.transform(ast, cfg);
 
+  // Removes undefined
+  return JSON.parse(
+    JSON.stringify({
+      markdoc: {
+        content,
+        frontmatter,
+        file: {
+          path: filepath
+        }
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
   return {
-    // Removes undefined
-    props: JSON.parse(
-      JSON.stringify({
-        markdoc: {
-          content,
-          frontmatter,
-          file: {
-            path: filepath
-          }
-        },
-      })
-    ),
+    props: await getProps(context),
   };
 }
 
 export default function MarkdocComponent(props) {
+  
+  // Only execute HMR code in development
+  return renderers.react(props.markdoc.content, React, {
+    components: {
+      ...components,
+      // Allows users to override default components at runtime, via their _app
+      ...props.components,
+    },
+  });
+}
+"
+`;
+
+exports[`app router 1`] = `
+"import React from 'react';
+import yaml from 'js-yaml';
+// renderers is imported separately so Markdoc isn't sent to the client
+import Markdoc, {renderers} from '@markdoc/markdoc'
+
+import {getSchema, defaultObject} from './src/runtime.js';
+/**
+ * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
+ * This enables typescript/ESnext support
+ */
+const schema = {};
+
+const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
+
+/**
+ * Source will never change at runtime, so parse happens at the file root
+ */
+const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
+const filepath = undefined;
+const tokens = tokenizer.tokenize(source);
+const ast = Markdoc.parse(tokens);
+
+/**
+ * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
+ * This unblocks future features, such a per-page dataFetchingFunction.
+ */
+const frontmatter = ast.attributes.frontmatter
+  ? yaml.load(ast.attributes.frontmatter)
+  : {};
+
+const {components, ...rest} = getSchema(schema)
+
+async function getProps(context = {}) {
+  const partials = {};
+
+  // Ensure Node.transformChildren is available
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      // user can't override this namespace
+      markdoc: {frontmatter},
+      // Allows users to eject from Markdoc rendering and pass in dynamic variables via getServerSideProps
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  /**
+   * transform must be called in dataFetchingFunction to support server-side rendering while
+   * accessing variables on the server
+   */
+  const content = await Markdoc.transform(ast, cfg);
+
+  // Removes undefined
+  return JSON.parse(
+    JSON.stringify({
+      markdoc: {
+        content,
+        frontmatter,
+        file: {
+          path: filepath
+        }
+      },
+    })
+  );
+}
+
+
+
+export default async function MarkdocComponent() {
+  const props = await getProps();
   // Only execute HMR code in development
   return renderers.react(props.markdoc.content, React, {
     components: {
@@ -123,7 +219,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-export async function getStaticProps(context) {
+async function getProps(context = {}) {
   const partials = {};
 
   // Ensure Node.transformChildren is available
@@ -151,23 +247,28 @@ export async function getStaticProps(context) {
    */
   const content = await Markdoc.transform(ast, cfg);
 
+  // Removes undefined
+  return JSON.parse(
+    JSON.stringify({
+      markdoc: {
+        content,
+        frontmatter,
+        file: {
+          path: filepath
+        }
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
   return {
-    // Removes undefined
-    props: JSON.parse(
-      JSON.stringify({
-        markdoc: {
-          content,
-          frontmatter,
-          file: {
-            path: filepath
-          }
-        },
-      })
-    ),
+    props: await getProps(context),
   };
 }
 
 export default function MarkdocComponent(props) {
+  
   // Only execute HMR code in development
   return renderers.react(props.markdoc.content, React, {
     components: {

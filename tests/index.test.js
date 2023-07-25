@@ -157,6 +157,26 @@ test('file output is correct', async () => {
   );
 });
 
+test('app router', async () => {
+  const output = await callLoader(options({ appDir: true }), source);
+
+  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
+
+  const page = evaluate(output);
+
+  expect(evaluate(output)).toEqual({
+    default: expect.any(Function),
+  });
+
+  expect(await page.default()).toEqual(
+    React.createElement(
+      'article',
+      undefined,
+      React.createElement('h1', undefined, 'Custom title')
+    )
+  );
+});
+
 test.each([
   [undefined, undefined],
   ['./schemas/folders', 'markdoc1'],
