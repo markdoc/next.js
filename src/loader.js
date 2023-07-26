@@ -52,7 +52,9 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
-    tokenizerOptions = {allowComments: true},
+    tokenizerOptions: {slots = false, ...tokenizerOptions} = {
+      allowComments: true,
+    },
     appDir = false,
   } = this.getOptions() || {};
 
@@ -60,7 +62,7 @@ async function load(source) {
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
-  const ast = Markdoc.parse(tokens);
+  const ast = Markdoc.parse(tokens, {slots});
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
   // to pass into the app props later.
@@ -141,7 +143,7 @@ const tokenizer = new Markdoc.Tokenizer(${
 const source = ${JSON.stringify(source)};
 const filepath = ${JSON.stringify(filepath)};
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens);
+const ast = Markdoc.parse(tokens, {slots: ${JSON.stringify(slots)}});
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
