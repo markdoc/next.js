@@ -33,7 +33,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-async function getProps(context = {}) {
+async function getMarkdocData(context = {}) {
   const partials = {};
 
   // Ensure Node.transformChildren is available
@@ -64,12 +64,10 @@ async function getProps(context = {}) {
   // Removes undefined
   return JSON.parse(
     JSON.stringify({
-      markdoc: {
-        content,
-        frontmatter,
-        file: {
-          path: filepath
-        }
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
       },
     })
   );
@@ -77,14 +75,16 @@ async function getProps(context = {}) {
 
 export async function getStaticProps(context) {
   return {
-    props: await getProps(context),
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
   };
 }
 
-export default function MarkdocComponent(props) {
-  
+export default function MarkdocComponent(props = {}) {
+  const markdoc = props.markdoc;
   // Only execute HMR code in development
-  return renderers.react(props.markdoc.content, React, {
+  return renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app
@@ -116,7 +116,7 @@ const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
 const filepath = undefined;
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens);
+const ast = Markdoc.parse(tokens, {slots: false});
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
@@ -128,7 +128,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-async function getProps(context = {}) {
+async function getMarkdocData(context = {}) {
   const partials = {};
 
   // Ensure Node.transformChildren is available
@@ -159,12 +159,10 @@ async function getProps(context = {}) {
   // Removes undefined
   return JSON.parse(
     JSON.stringify({
-      markdoc: {
-        content,
-        frontmatter,
-        file: {
-          path: filepath
-        }
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
       },
     })
   );
@@ -172,10 +170,10 @@ async function getProps(context = {}) {
 
 
 
-export default async function MarkdocComponent() {
-  const props = await getProps();
+export default async function MarkdocComponent(props = {}) {
+  const markdoc = await getMarkdocData();
   // Only execute HMR code in development
-  return renderers.react(props.markdoc.content, React, {
+  return renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app
@@ -219,7 +217,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-async function getProps(context = {}) {
+async function getMarkdocData(context = {}) {
   const partials = {};
 
   // Ensure Node.transformChildren is available
@@ -250,12 +248,10 @@ async function getProps(context = {}) {
   // Removes undefined
   return JSON.parse(
     JSON.stringify({
-      markdoc: {
-        content,
-        frontmatter,
-        file: {
-          path: filepath
-        }
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
       },
     })
   );
@@ -263,14 +259,16 @@ async function getProps(context = {}) {
 
 export async function getStaticProps(context) {
   return {
-    props: await getProps(context),
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
   };
 }
 
-export default function MarkdocComponent(props) {
-  
+export default function MarkdocComponent(props = {}) {
+  const markdoc = props.markdoc;
   // Only execute HMR code in development
-  return renderers.react(props.markdoc.content, React, {
+  return renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app

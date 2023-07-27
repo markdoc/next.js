@@ -155,7 +155,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-async function getProps(context = {}) {
+async function getMarkdocData(context = {}) {
   const partials = ${JSON.stringify(partials)};
 
   // Ensure Node.transformChildren is available
@@ -186,12 +186,10 @@ async function getProps(context = {}) {
   // Removes undefined
   return JSON.parse(
     JSON.stringify({
-      markdoc: {
-        content,
-        frontmatter,
-        file: {
-          path: filepath
-        }
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
       },
     })
   );
@@ -199,14 +197,16 @@ async function getProps(context = {}) {
 
 ${appDir ? '' : `export async function ${dataFetchingFunction}(context) {
   return {
-    props: await getProps(context),
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
   };
 }`}
 
-export default${appDir ? ' async' : ''} function MarkdocComponent(${appDir ? '' : 'props'}) {
-  ${appDir ? `const props = await getProps();` : ''}
+export default${appDir ? ' async' : ''} function MarkdocComponent(props = {}) {
+  const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development
-  return renderers.react(props.markdoc.content, React, {
+  return renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app
