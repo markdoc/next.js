@@ -168,7 +168,7 @@ test('app router', async () => {
     default: expect.any(Function),
   });
 
-  expect(await page.default()).toEqual(
+  expect(await page.default({})).toEqual(
     React.createElement(
       'article',
       undefined,

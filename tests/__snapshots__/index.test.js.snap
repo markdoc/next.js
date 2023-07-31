@@ -81,7 +81,7 @@ export async function getStaticProps(context) {
   };
 }
 
-export default function MarkdocComponent(props = {}) {
+export default function MarkdocComponent(props) {
   const markdoc = props.markdoc;
   // Only execute HMR code in development
   return renderers.react(markdoc.content, React, {
@@ -170,7 +170,7 @@ async function getMarkdocData(context = {}) {
 
 
 
-export default async function MarkdocComponent(props = {}) {
+export default async function MarkdocComponent(props) {
   const markdoc = await getMarkdocData();
   // Only execute HMR code in development
   return renderers.react(markdoc.content, React, {
@@ -265,7 +265,7 @@ export async function getStaticProps(context) {
   };
 }
 
-export default function MarkdocComponent(props = {}) {
+export default function MarkdocComponent(props) {
   const markdoc = props.markdoc;
   // Only execute HMR code in development
   return renderers.react(markdoc.content, React, {

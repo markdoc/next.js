@@ -203,7 +203,7 @@ ${appDir ? '' : `export async function ${dataFetchingFunction}(context) {
   };
 }`}
 
-export default${appDir ? ' async' : ''} function MarkdocComponent(props = {}) {
+export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development
   return renderers.react(markdoc.content, React, {
