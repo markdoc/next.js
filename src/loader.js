@@ -55,6 +55,7 @@ async function load(source) {
     tokenizerOptions: {slots = false, ...tokenizerOptions} = {
       allowComments: true,
     },
+    appDir = false,
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(tokenizerOptions);
@@ -63,12 +64,12 @@ async function load(source) {
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, {slots});
 
-  // Grabs the path of the file relative to the `/pages` directory
+  // Grabs the path of the file relative to the `/{app,pages}` directory
   // to pass into the app props later.
   // This array access @ index 1 is safe since Next.js guarantees that
-  // all pages will be located under either pages/ or src/pages/
+  // all pages will be located under either {app,pages}/ or src/{app,pages}/
   // https://nextjs.org/docs/advanced-features/src-directory
-  const filepath = this.resourcePath.split('pages')[1];
+  const filepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
 
   const partials = await gatherPartials.call(
     this,
@@ -154,7 +155,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-export async function ${dataFetchingFunction}(context) {
+async function getMarkdocData(context = {}) {
   const partials = ${JSON.stringify(partials)};
 
   // Ensure Node.transformChildren is available
@@ -182,25 +183,30 @@ export async function ${dataFetchingFunction}(context) {
    */
   const content = await Markdoc.transform(ast, cfg);
 
-  return {
-    // Removes undefined
-    props: JSON.parse(
-      JSON.stringify({
-        markdoc: {
-          content,
-          frontmatter,
-          file: {
-            path: filepath
-          }
-        },
-      })
-    ),
-  };
+  // Removes undefined
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
 }
 
-export default function MarkdocComponent(props) {
+${appDir ? '' : `export async function ${dataFetchingFunction}(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}`}
+
+export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
+  const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development
-  return renderers.react(props.markdoc.content, React, {
+  return renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app
