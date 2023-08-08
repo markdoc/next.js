@@ -177,6 +177,22 @@ test('app router', async () => {
   );
 });
 
+test('app router metadata', async () => {
+  const output = await callLoader(
+    options({ appDir: true }),
+    source.replace('---', '---\nmetadata:\n  title: Metadata title')
+  );
+
+  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
+
+  expect(evaluate(output)).toEqual({
+    default: expect.any(Function),
+    metadata: expect.objectContaining({
+      title: 'Metadata title',
+    }),
+  });
+});
+
 test.each([
   [undefined, undefined],
   ['./schemas/folders', 'markdoc1'],
