@@ -52,13 +52,13 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
-    tokenizerOptions: {slots = false, ...tokenizerOptions} = {
+    options: {slots = false, ...options} = {
       allowComments: true,
     },
     appDir = false,
   } = this.getOptions() || {};
 
-  const tokenizer = new Markdoc.Tokenizer(tokenizerOptions);
+  const tokenizer = new Markdoc.Tokenizer(options);
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
@@ -134,7 +134,7 @@ import {getSchema, defaultObject} from '${normalize(
 ${schemaCode}
 
 const tokenizer = new Markdoc.Tokenizer(${
-    tokenizerOptions ? JSON.stringify(tokenizerOptions) : ''
+    options ? JSON.stringify(options) : ''
   });
 
 /**
@@ -195,13 +195,17 @@ async function getMarkdocData(context = {}) {
   );
 }
 
-${appDir ? '' : `export async function ${dataFetchingFunction}(context) {
+${
+  appDir
+    ? ''
+    : `export async function ${dataFetchingFunction}(context) {
   return {
     props: {
       markdoc: await getMarkdocData(context),
     },
   };
-}`}
+}`
+}
 
 export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
