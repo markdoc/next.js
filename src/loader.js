@@ -119,6 +119,23 @@ async function load(source) {
   }
 
   this.addContextDependency(schemaDir);
+
+  const nextjsExports = [
+    'dynamic',
+    'dynamicParams',
+    'fetchCache',
+    'maxDuration',
+    'metadata',
+    'preferredRegion',
+    'revalidate',
+    'runtime',
+  ]
+  const nextjsExportsCode = nextjsExports
+    .map((name) => {
+      return `export const ${name} = frontmatter.nextjs?.${name};`
+    })
+    .join('\n')
+
   const result = `import React from 'react';
 import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
@@ -206,9 +223,7 @@ ${
   };
 }`
 }
-
-${appDir ? `export const metadata = frontmatter.metadata;` : ''}
-
+${appDir ? nextjsExportsCode : ''}
 export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development

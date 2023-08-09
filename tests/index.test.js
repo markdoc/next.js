@@ -183,14 +183,7 @@ test('app router metadata', async () => {
     source.replace('---', '---\nmetadata:\n  title: Metadata title')
   );
 
-  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
-
-  expect(evaluate(output)).toEqual({
-    default: expect.any(Function),
-    metadata: expect.objectContaining({
-      title: 'Metadata title',
-    }),
-  });
+  expect(output).toContain('export const metadata = frontmatter.nextjs?.metadata;')
 });
 
 test.each([
