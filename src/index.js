@@ -14,7 +14,9 @@ const withMarkdoc =
                 ...pluginOptions,
                 dir: options.dir,
                 nextRuntime: options.nextRuntime,
-                appDir: options.config.experimental.appDir,
+                appDir:
+                  options.config.experimental.appDir &&
+                  options.defaultLoaders.babel.options.appDir,
               },
             },
           ],
