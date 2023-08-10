@@ -125,9 +125,7 @@ async function load(source) {
     'revalidate',
   ]
   const nextjsExportsCode = nextjsExports
-    .map((name) => {
-      return `export const ${name} = frontmatter.nextjs?.${name};`
-    })
+    .map((name) => `export const ${name} = frontmatter.nextjs?.${name};`)
     .join('\n')
 
   const result = `import React from 'react';
