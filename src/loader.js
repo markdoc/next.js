@@ -121,14 +121,8 @@ async function load(source) {
   this.addContextDependency(schemaDir);
 
   const nextjsExports = [
-    'dynamic',
-    'dynamicParams',
-    'fetchCache',
-    'maxDuration',
     'metadata',
-    'preferredRegion',
     'revalidate',
-    'runtime',
   ]
   const nextjsExportsCode = nextjsExports
     .map((name) => {
