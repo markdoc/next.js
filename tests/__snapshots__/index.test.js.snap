@@ -169,7 +169,14 @@ async function getMarkdocData(context = {}) {
 }
 
 
-
+export const dynamic = frontmatter.nextjs?.dynamic;
+export const dynamicParams = frontmatter.nextjs?.dynamicParams;
+export const fetchCache = frontmatter.nextjs?.fetchCache;
+export const maxDuration = frontmatter.nextjs?.maxDuration;
+export const metadata = frontmatter.nextjs?.metadata;
+export const preferredRegion = frontmatter.nextjs?.preferredRegion;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const runtime = frontmatter.nextjs?.runtime;
 export default async function MarkdocComponent(props) {
   const markdoc = await getMarkdocData();
   // Only execute HMR code in development

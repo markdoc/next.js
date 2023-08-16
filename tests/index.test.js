@@ -177,6 +177,15 @@ test('app router', async () => {
   );
 });
 
+test('app router metadata', async () => {
+  const output = await callLoader(
+    options({ appDir: true }),
+    source.replace('---', '---\nmetadata:\n  title: Metadata title')
+  );
+
+  expect(output).toContain('export const metadata = frontmatter.nextjs?.metadata;')
+});
+
 test.each([
   [undefined, undefined],
   ['./schemas/folders', 'markdoc1'],
