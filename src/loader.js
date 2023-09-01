@@ -8,7 +8,7 @@ function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
 
-async function gatherPartials(ast, schemaDir, tokenizer) {
+async function gatherPartials(ast, schemaDir, tokenizer, parseOptions) {
   let partials = {};
 
   for (const node of ast.walk()) {
@@ -26,11 +26,17 @@ async function gatherPartials(ast, schemaDir, tokenizer) {
 
       if (content) {
         const tokens = tokenizer.tokenize(content);
-        const ast = Markdoc.parse(tokens);
+        const ast = Markdoc.parse(tokens, parseOptions);
         partials = {
           ...partials,
           [file]: content,
-          ...(await gatherPartials.call(this, ast, schemaDir, tokenizer)),
+          ...(await gatherPartials.call(
+            this,
+            ast,
+            schemaDir,
+            tokenizer,
+            parseOptions
+          )),
         };
       }
     }
@@ -59,10 +65,11 @@ async function load(source) {
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(options);
+  const parseOptions = {slots};
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
-  const ast = Markdoc.parse(tokens, {slots});
+  const ast = Markdoc.parse(tokens, parseOptions);
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
   // to pass into the app props later.
@@ -75,7 +82,8 @@ async function load(source) {
     this,
     ast,
     path.resolve(schemaDir, 'partials'),
-    tokenizer
+    tokenizer,
+    parseOptions
   );
 
   // IDEA: consider making this an option per-page
@@ -120,13 +128,10 @@ async function load(source) {
 
   this.addContextDependency(schemaDir);
 
-  const nextjsExports = [
-    'metadata',
-    'revalidate',
-  ]
+  const nextjsExports = ['metadata', 'revalidate'];
   const nextjsExportsCode = nextjsExports
     .map((name) => `export const ${name} = frontmatter.nextjs?.${name};`)
-    .join('\n')
+    .join('\n');
 
   const result = `import React from 'react';
 import yaml from 'js-yaml';
@@ -152,7 +157,8 @@ const tokenizer = new Markdoc.Tokenizer(${
 const source = ${JSON.stringify(source)};
 const filepath = ${JSON.stringify(filepath)};
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens, {slots: ${JSON.stringify(slots)}});
+const parseOptions = ${JSON.stringify(parseOptions)};
+const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
@@ -170,7 +176,7 @@ async function getMarkdocData(context = {}) {
   // Ensure Node.transformChildren is available
   Object.keys(partials).forEach((key) => {
     const tokens = tokenizer.tokenize(partials[key]);
-    partials[key] = Markdoc.parse(tokens);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
   });
 
   const cfg = {
