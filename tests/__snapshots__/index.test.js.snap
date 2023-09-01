@@ -21,7 +21,8 @@ const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
 const filepath = \\"/test/index.md\\";
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens, {slots: false});
+const parseOptions = {\\"slots\\":false};
+const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
@@ -39,7 +40,7 @@ async function getMarkdocData(context = {}) {
   // Ensure Node.transformChildren is available
   Object.keys(partials).forEach((key) => {
     const tokens = tokenizer.tokenize(partials[key]);
-    partials[key] = Markdoc.parse(tokens);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
   });
 
   const cfg = {
@@ -116,7 +117,8 @@ const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
 const filepath = undefined;
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens, {slots: false});
+const parseOptions = {\\"slots\\":false};
+const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
@@ -134,7 +136,7 @@ async function getMarkdocData(context = {}) {
   // Ensure Node.transformChildren is available
   Object.keys(partials).forEach((key) => {
     const tokens = tokenizer.tokenize(partials[key]);
-    partials[key] = Markdoc.parse(tokens);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
   });
 
   const cfg = {
@@ -206,7 +208,8 @@ const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
 const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
 const filepath = \\"/test/index.md\\";
 const tokens = tokenizer.tokenize(source);
-const ast = Markdoc.parse(tokens, {slots: false});
+const parseOptions = {\\"slots\\":false};
+const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
@@ -224,7 +227,7 @@ async function getMarkdocData(context = {}) {
   // Ensure Node.transformChildren is available
   Object.keys(partials).forEach((key) => {
     const tokens = tokenizer.tokenize(partials[key]);
-    partials[key] = Markdoc.parse(tokens);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
   });
 
   const cfg = {
