@@ -1,6 +1,6 @@
 {
   "name": "@markdoc/next.js",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Stripe, Inc.",
   "description": "Markdoc plugin for Next.js",
   "license": "MIT",
