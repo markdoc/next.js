@@ -110,10 +110,12 @@ async function load(source) {
         ${await importAtRuntime('tags')}
         ${await importAtRuntime('nodes')}
         ${await importAtRuntime('functions')}
+        ${await importAtRuntime('variables')}
         const schema = {
           tags: defaultObject(tags),
           nodes: defaultObject(nodes),
           functions: defaultObject(functions),
+          variables: defaultObject(variables),
           ...defaultObject(config),
         };`
         .trim()
