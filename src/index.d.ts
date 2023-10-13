@@ -1,5 +1,7 @@
 import type {ElementType} from 'react';
+import type {NextConfig} from 'next';
 import type {Config, RenderableTreeNodes, Schema} from '@markdoc/markdoc';
+import type {RuleSetConditionAbsolute} from 'webpack';
 
 export type MarkdocNextJsPageProps = {
   markdoc?: {
@@ -17,3 +19,19 @@ export type MarkdocNextJsSchema<O extends Object = {}> = Schema<
   O & MarkdocNextJsConfig,
   ElementType
 >;
+
+export interface MarkdocNextJsOptions {
+  extension?: RuleSetConditionAbsolute;
+  mode?: 'static' | 'server';
+  options?: {
+    slots?: boolean;
+    allowComments?: boolean;
+  };
+  schemaPath?: string;
+}
+
+declare function createMarkdocPlugin(
+  options?: MarkdocNextJsOptions
+): (config: NextConfig) => NextConfig;
+
+export default createMarkdocPlugin;
