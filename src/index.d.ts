@@ -1,5 +1,5 @@
-import {NextConfig} from 'next';
 import type {ElementType} from 'react';
+import type {NextConfig} from 'next';
 import type {Config, RenderableTreeNodes, Schema} from '@markdoc/markdoc';
 import type {RuleSetConditionAbsolute} from 'webpack';
 
@@ -34,4 +34,4 @@ declare function createMarkdocPlugin(
   options?: MarkdocNextJsOptions
 ): (config: NextConfig) => NextConfig;
 
-export = createMarkdocPlugin;
+export default createMarkdocPlugin;
