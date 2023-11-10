@@ -61,6 +61,7 @@ async function load(source) {
     options: {slots = false, ...options} = {
       allowComments: true,
     },
+    nextjsExports = ['metadata', 'revalidate'],
     appDir = false,
   } = this.getOptions() || {};
 
@@ -128,7 +129,6 @@ async function load(source) {
 
   this.addContextDependency(schemaDir);
 
-  const nextjsExports = ['metadata', 'revalidate'];
   const nextjsExportsCode = nextjsExports
     .map((name) => `export const ${name} = frontmatter.nextjs?.${name};`)
     .join('\n');
