@@ -28,6 +28,7 @@ export interface MarkdocNextJsOptions {
     allowComments?: boolean;
   };
   schemaPath?: string;
+  layoutPath?: string;
 }
 
 declare function createMarkdocPlugin(

@@ -58,6 +58,7 @@ async function load(source) {
     dir, // Root directory from Next.js (contains next.config.js)
     mode = 'static',
     schemaPath = DEFAULT_SCHEMA_PATH,
+    layoutPath = undefined,
     options: {slots = false, ...options} = {
       allowComments: true,
     },
@@ -69,6 +70,7 @@ async function load(source) {
   const parseOptions = {slots};
 
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
+  const layoutFilePath = layoutPath ? path.resolve(dir, layoutPath) : undefined;
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, parseOptions);
 
@@ -123,16 +125,34 @@ async function load(source) {
   } catch (error) {
     // Only throw module not found errors if user is passing a custom schemaPath
     if (schemaPath && schemaPath !== DEFAULT_SCHEMA_PATH) {
-      throw new Error(`Cannot find module '${schemaPath}' at '${schemaDir}'`);
+      throw new Error(`Cannot find module '${layoutFilePath}' at '${schemaDir}'`);
+    }
+  }
+
+  let layoutImportCode = '';
+  if (layoutFilePath) {
+    try {
+      const fileExists = await fs.promises.stat(layoutFilePath);
+      if (fileExists) {
+        layoutImportCode = `import Layout from '${normalize(layoutFilePath)}'`;
+      }
+    } catch (error) {
+      // Only throw module not found errors if user is passing a custom schemaPath
+      if (layoutFilePath) {
+        throw new Error(`Cannot find module '${layoutPath}' at '${layoutFilePath}'`);
+      }
     }
   }
 
   this.addContextDependency(schemaDir);
+  if (layoutFilePath) {
+    this.addContextDependency(layoutFilePath);  
+  }
 
   const nextjsExportsCode = nextjsExports
     .map((name) => `export const ${name} = frontmatter.nextjs?.${name};`)
     .join('\n');
-
+    
   const result = `import React from 'react';
 import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
@@ -141,6 +161,7 @@ import Markdoc, {renderers} from '@markdoc/markdoc'
 import {getSchema, defaultObject} from '${normalize(
     await resolve(__dirname, './runtime')
   )}';
+${layoutImportCode ? layoutImportCode : ''}
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support
@@ -225,13 +246,14 @@ ${appDir ? nextjsExportsCode : ''}
 export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development
-  return renderers.react(markdoc.content, React, {
+  const component = renderers.react(markdoc.content, React, {
     components: {
       ...components,
       // Allows users to override default components at runtime, via their _app
       ...props.components,
     },
   });
+  return ${layoutImportCode ? 'React.createElement(Layout, {markdoc}, component)' : 'component'};
 }
 `;
   return result;
