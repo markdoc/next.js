@@ -152,6 +152,12 @@ async function load(source) {
   const nextjsExportsCode = nextjsExports
     .map((name) => `export const ${name} = frontmatter.nextjs?.${name};`)
     .join('\n');
+
+  const metadataExportsCode = `
+  let mtd = {};
+  if (frontmatter.title) { mtd.title = frontmatter.title + ' | Thunderstrike'}
+  if (frontmatter.description) { mtd.description = frontmatter.description }
+  export const metadata = mtd`
     
   const result = `import React from 'react';
 import yaml from 'js-yaml';
@@ -255,6 +261,7 @@ export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   });
   return ${layoutImportCode ? 'React.createElement(Layout, {markdoc}, component)' : 'component'};
 }
+${appDir ? metadataExportsCode : ''}
 `;
   return result;
 }
