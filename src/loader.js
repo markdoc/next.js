@@ -222,6 +222,7 @@ ${
 }`
 }
 ${appDir ? nextjsExportsCode : ''}
+export const markdoc = {frontmatter};
 export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
   const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
   // Only execute HMR code in development
