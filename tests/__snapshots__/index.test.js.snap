@@ -82,6 +82,7 @@ export async function getStaticProps(context) {
   };
 }
 
+export const markdoc = {frontmatter};
 export default function MarkdocComponent(props) {
   const markdoc = props.markdoc;
   // Only execute HMR code in development
@@ -173,6 +174,7 @@ async function getMarkdocData(context = {}) {
 
 export const metadata = frontmatter.nextjs?.metadata;
 export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
 export default async function MarkdocComponent(props) {
   const markdoc = await getMarkdocData();
   // Only execute HMR code in development
@@ -269,6 +271,7 @@ export async function getStaticProps(context) {
   };
 }
 
+export const markdoc = {frontmatter};
 export default function MarkdocComponent(props) {
   const markdoc = props.markdoc;
   // Only execute HMR code in development

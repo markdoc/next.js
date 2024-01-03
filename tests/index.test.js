@@ -123,6 +123,11 @@ test('file output is correct', async () => {
   expect(evaluate(output)).toEqual({
     default: expect.any(Function),
     getStaticProps: expect.any(Function),
+    markdoc: {
+      frontmatter: {
+        title: 'Custom title',
+      },
+    },
   });
 
   const data = await page.getStaticProps({});
@@ -158,7 +163,7 @@ test('file output is correct', async () => {
 });
 
 test('app router', async () => {
-  const output = await callLoader(options({ appDir: true }), source);
+  const output = await callLoader(options({appDir: true}), source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
 
@@ -166,6 +171,11 @@ test('app router', async () => {
 
   expect(evaluate(output)).toEqual({
     default: expect.any(Function),
+    markdoc: {
+      frontmatter: {
+        title: 'Custom title',
+      },
+    },
   });
 
   expect(await page.default({})).toEqual(
@@ -179,11 +189,13 @@ test('app router', async () => {
 
 test('app router metadata', async () => {
   const output = await callLoader(
-    options({ appDir: true }),
+    options({appDir: true}),
     source.replace('---', '---\nmetadata:\n  title: Metadata title')
   );
 
-  expect(output).toContain('export const metadata = frontmatter.nextjs?.metadata;')
+  expect(output).toContain(
+    'export const metadata = frontmatter.nextjs?.metadata;'
+  );
 });
 
 test.each([
@@ -248,5 +260,10 @@ test('mode="server"', async () => {
   expect(evaluate(output)).toEqual({
     default: expect.any(Function),
     getServerSideProps: expect.any(Function),
+    markdoc: {
+      frontmatter: {
+        title: 'Custom title',
+      },
+    },
   });
 });
