@@ -109,6 +109,10 @@ exports.link = {
       description: 'The active locale is automatically prepended.',
       type: Boolean,
     },
+    target: {
+      description: 'HTML attribute anchor target ("_self", "_blank", "_parent", "_top")',
+      type: String,
+    }
   },
 };
 
