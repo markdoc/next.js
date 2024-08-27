@@ -164,7 +164,7 @@ const ast = Markdoc.parse(tokens, parseOptions);
  * Like the AST, frontmatter won't change at runtime, so it is loaded at file root.
  * This unblocks future features, such a per-page dataFetchingFunction.
  */
-const frontmatter = ast.attributes.frontmatter
+export const frontmatter = ast.attributes.frontmatter
   ? yaml.load(ast.attributes.frontmatter)
   : {};
 

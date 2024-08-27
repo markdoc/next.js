@@ -77,9 +77,7 @@ function options(config = {}) {
       const resolve = enhancedResolve.create(options);
       return async (context, file) =>
         new Promise((res, rej) =>
-          resolve(context, file, (err, result) =>
-            err ? rej(err) : res(result)
-          )
+          resolve(context, file, (err, result) => (err ? rej(err) : res(result)))
         ).then(normalizeAbsolutePath);
     },
     resourcePath: '/Users/someone/a-next-js-repo/pages/test/index.md',
@@ -102,15 +100,13 @@ async function callLoader(config, source) {
 }
 
 test('should not fail build if default `schemaPath` is used', async () => {
-  await expect(callLoader(options(), source)).resolves.toEqual(
-    expect.any(String)
-  );
+  await expect(callLoader(options(), source)).resolves.toEqual(expect.any(String));
 });
 
 test('should fail build if invalid `schemaPath` is used', async () => {
-  await expect(
-    callLoader(options({schemaPath: 'unknown_schema_path'}), source)
-  ).rejects.toThrow("Cannot find module 'unknown_schema_path'");
+  await expect(callLoader(options({schemaPath: 'unknown_schema_path'}), source)).rejects.toThrow(
+    "Cannot find module 'unknown_schema_path'"
+  );
 });
 
 test('file output is correct', async () => {
@@ -127,6 +123,9 @@ test('file output is correct', async () => {
       frontmatter: {
         title: 'Custom title',
       },
+    },
+    frontmatter: {
+      title: 'Custom title',
     },
   });
 
@@ -154,11 +153,7 @@ test('file output is correct', async () => {
   });
 
   expect(page.default(data.props)).toEqual(
-    React.createElement(
-      'article',
-      undefined,
-      React.createElement('h1', undefined, 'Custom title')
-    )
+    React.createElement('article', undefined, React.createElement('h1', undefined, 'Custom title'))
   );
 });
 
@@ -176,14 +171,13 @@ test('app router', async () => {
         title: 'Custom title',
       },
     },
+    frontmatter: {
+      title: 'Custom title',
+    },
   });
 
   expect(await page.default({})).toEqual(
-    React.createElement(
-      'article',
-      undefined,
-      React.createElement('h1', undefined, 'Custom title')
-    )
+    React.createElement('article', undefined, React.createElement('h1', undefined, 'Custom title'))
   );
 });
 
@@ -193,9 +187,7 @@ test('app router metadata', async () => {
     source.replace('---', '---\nmetadata:\n  title: Metadata title')
   );
 
-  expect(output).toContain(
-    'export const metadata = frontmatter.nextjs?.metadata;'
-  );
+  expect(output).toContain('export const metadata = frontmatter.nextjs?.metadata;');
 });
 
 test.each([
@@ -211,9 +203,7 @@ test.each([
   const page = evaluate(output);
 
   const data = await page.getStaticProps({});
-  expect(data.props.markdoc.content.children[0].children[0]).toEqual(
-    'Custom title'
-  );
+  expect(data.props.markdoc.content.children[0].children[0]).toEqual('Custom title');
   expect(data.props.markdoc.content.children[1]).toEqual(expectedChild);
 });
 
@@ -264,6 +254,9 @@ test('mode="server"', async () => {
       frontmatter: {
         title: 'Custom title',
       },
+    },
+    frontmatter: {
+      title: 'Custom title',
     },
   });
 });
