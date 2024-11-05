@@ -34,4 +34,4 @@ declare function createMarkdocPlugin(
   options?: MarkdocNextJsOptions
 ): (config: NextConfig) => NextConfig;
 
-export default createMarkdocPlugin;
+export = createMarkdocPlugin;
