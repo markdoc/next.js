@@ -116,7 +116,7 @@ const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
  * Source will never change at runtime, so parse happens at the file root
  */
 const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
-const filepath = undefined;
+const filepath = \\"/test/index.md\\";
 const tokens = tokenizer.tokenize(source);
 const parseOptions = {\\"slots\\":false};
 const ast = Markdoc.parse(tokens, parseOptions);

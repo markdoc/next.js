@@ -30,13 +30,7 @@ async function gatherPartials(ast, schemaDir, tokenizer, parseOptions) {
         partials = {
           ...partials,
           [file]: content,
-          ...(await gatherPartials.call(
-            this,
-            ast,
-            schemaDir,
-            tokenizer,
-            parseOptions
-          )),
+          ...(await gatherPartials.call(this, ast, schemaDir, tokenizer, parseOptions)),
         };
       }
     }
@@ -63,6 +57,7 @@ async function load(source) {
     },
     nextjsExports = ['metadata', 'revalidate'],
     appDir = false,
+    pagesDir,
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(options);
@@ -71,6 +66,8 @@ async function load(source) {
   const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, parseOptions);
+
+  const isPage = this.resourcePath.startsWith(appDir || pagesDir);
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
   // to pass into the app props later.
@@ -88,8 +85,7 @@ async function load(source) {
   );
 
   // IDEA: consider making this an option per-page
-  const dataFetchingFunction =
-    mode === 'server' ? 'getServerSideProps' : 'getStaticProps';
+  const dataFetchingFunction = mode === 'server' ? 'getServerSideProps' : 'getStaticProps';
 
   let schemaCode = 'const schema = {};';
   try {
@@ -138,18 +134,14 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema, defaultObject} from '${normalize(
-    await resolve(__dirname, './runtime')
-  )}';
+import {getSchema, defaultObject} from '${normalize(await resolve(__dirname, './runtime'))}';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support
  */
 ${schemaCode}
 
-const tokenizer = new Markdoc.Tokenizer(${
-    options ? JSON.stringify(options) : ''
-  });
+const tokenizer = new Markdoc.Tokenizer(${options ? JSON.stringify(options) : ''});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
@@ -170,7 +162,7 @@ const frontmatter = ast.attributes.frontmatter
 
 const {components, ...rest} = getSchema(schema)
 
-async function getMarkdocData(context = {}) {
+${isPage ? 'async ' : ''}function getMarkdocData(context = {}) {
   const partials = ${JSON.stringify(partials)};
 
   // Ensure Node.transformChildren is available
@@ -196,7 +188,7 @@ async function getMarkdocData(context = {}) {
    * transform must be called in dataFetchingFunction to support server-side rendering while
    * accessing variables on the server
    */
-  const content = await Markdoc.transform(ast, cfg);
+  const content = ${isPage ? 'await ' : ''}Markdoc.transform(ast, cfg);
 
   // Removes undefined
   return JSON.parse(
@@ -211,7 +203,7 @@ async function getMarkdocData(context = {}) {
 }
 
 ${
-  appDir
+  appDir || !isPage
     ? ''
     : `export async function ${dataFetchingFunction}(context) {
   return {
@@ -221,10 +213,12 @@ ${
   };
 }`
 }
-${appDir ? nextjsExportsCode : ''}
+${appDir && isPage ? nextjsExportsCode : ''}
 export const markdoc = {frontmatter};
-export default${appDir ? ' async' : ''} function MarkdocComponent(props) {
-  const markdoc = ${appDir ? 'await getMarkdocData()' : 'props.markdoc'};
+export default${appDir && isPage ? ' async' : ''} function MarkdocComponent(props) {
+  const markdoc = ${
+    isPage ? (appDir ? 'await getMarkdocData()' : 'props.markdoc') : 'getMarkdocData()'
+  };
   // Only execute HMR code in development
   return renderers.react(markdoc.content, React, {
     components: {
