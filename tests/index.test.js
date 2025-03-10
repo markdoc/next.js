@@ -255,3 +255,12 @@ test('mode="server"', async () => {
     },
   });
 });
+
+test('import as frontend component', async () => {
+  const o = options();
+  // Use a non-page pathway
+  o.resourcePath = o.resourcePath.replace('pages/test/index.md', 'components/table.md');
+  const output = await callLoader(o, source);
+
+  expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
+});
