@@ -58,22 +58,29 @@ async function load(source) {
     nextjsExports = ['metadata', 'revalidate'],
     appDir = false,
     pagesDir,
+    // Turbopack compatibility: these might not be available
+    nextRuntime,
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(options);
   const parseOptions = {slots};
 
-  const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
+
+  // Fallback for dir when not provided (Turbopack compatibility)
+  const rootDir = dir || process.cwd();
+  const schemaDir = path.resolve(rootDir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, parseOptions);
 
-  const isPage = this.resourcePath.startsWith(appDir || pagesDir);
+  // Determine if this is a page file by checking if it starts with the provided directories
+  const isPage = (appDir && this.resourcePath.startsWith(appDir)) || 
+                 (pagesDir && this.resourcePath.startsWith(pagesDir));
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
   // to pass into the app props later.
   // This array access @ index 1 is safe since Next.js guarantees that
   // all pages will be located under either {app,pages}/ or src/{app,pages}/
-  // https://nextjs.org/docs/advanced-features/src-directory
+  // https://nextjs.org/docs/app/building-your-application/configuring/src-directory
   const filepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
 
   const partials = await gatherPartials.call(
@@ -134,7 +141,7 @@ import yaml from 'js-yaml';
 // renderers is imported separately so Markdoc isn't sent to the client
 import Markdoc, {renderers} from '@markdoc/markdoc'
 
-import {getSchema, defaultObject} from '${normalize(await resolve(__dirname, './runtime'))}';
+import {getSchema, defaultObject} from '@markdoc/next.js/runtime';
 /**
  * Schema is imported like this so end-user's code is compiled using build-in babel/webpack configs.
  * This enables typescript/ESnext support

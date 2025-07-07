@@ -8,6 +8,7 @@
   "types": "./src/index.d.ts",
   "exports": {
     ".": "./src/index.js",
+    "./src/runtime": "./src/runtime.js",
     "./*": "./src/*.js"
   },
   "scripts": {

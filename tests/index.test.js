@@ -28,6 +28,9 @@ function evaluate(output) {
   const {code} = babel.transformSync(output);
   const exports = {};
 
+  // Mock the runtime module
+  const runtimeMock = require('../src/runtime');
+
   // https://stackoverflow.com/questions/38332094/how-can-i-mock-webpacks-require-context-in-jest
   require.context = require.context = (base = '.') => {
     const files = [];
@@ -49,9 +52,23 @@ function evaluate(output) {
     return Object.assign(require, {keys: () => files});
   };
 
+  // Create a custom require function that can resolve the runtime module
+  const customRequire = (id) => {
+    if (id === './src/runtime.js' || id === '@markdoc/next.js/runtime') {
+      return runtimeMock;
+    }
+    return require(id);
+  };
+
+  // Copy essential properties from the original require
+  customRequire.resolve = require.resolve;
+  customRequire.cache = require.cache;
+  customRequire.extensions = require.extensions;
+  customRequire.context = require.context;
+
   vm.runInNewContext(code, {
     exports,
-    require,
+    require: customRequire,
     console,
   });
 
@@ -263,4 +280,50 @@ test('import as frontend component', async () => {
   const output = await callLoader(o, source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
+});
+
+test('Turbopack configuration', () => {
+  const withMarkdoc = require('../src/index.js');
+  
+  // Test basic Turbopack configuration
+  const config = withMarkdoc()({
+    pageExtensions: ['js', 'md', 'mdoc'],
+  });
+  
+  expect(config.turbopack).toBeDefined();
+  expect(config.turbopack.rules).toBeDefined();
+  expect(config.turbopack.rules['*.md']).toBeDefined();
+  expect(config.turbopack.rules['*.mdoc']).toBeDefined();
+  
+  // Verify rule structure
+  const mdRule = config.turbopack.rules['*.md'];
+  expect(mdRule.loaders).toHaveLength(1);
+  expect(mdRule.loaders[0].loader).toContain('loader');
+  expect(mdRule.as).toBe('*.js');
+  
+  // Test that existing turbopack config is preserved
+  const configWithExisting = withMarkdoc()({
+    pageExtensions: ['js', 'md'],
+    turbopack: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  });
+  
+  expect(configWithExisting.turbopack.rules['*.svg']).toBeDefined();
+  expect(configWithExisting.turbopack.rules['*.md']).toBeDefined();
+  
+  // Test custom extension
+  const configWithCustomExt = withMarkdoc({
+    extension: /\.(markdown|mdx)$/,
+  })({
+    pageExtensions: ['js', 'markdown', 'mdx'],
+  });
+  
+  expect(configWithCustomExt.turbopack.rules['*.markdown']).toBeDefined();
+  expect(configWithCustomExt.turbopack.rules['*.mdx']).toBeDefined();
 });
