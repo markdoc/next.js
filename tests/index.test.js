@@ -6,6 +6,9 @@ const React = require('react');
 const enhancedResolve = require('enhanced-resolve');
 const loader = require('../src/loader');
 
+// Mock the runtime module using Jest
+jest.mock('@markdoc/next.js/runtime', () => require('../src/runtime'), {virtual: true});
+
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
 // https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
@@ -28,9 +31,6 @@ function evaluate(output) {
   const {code} = babel.transformSync(output);
   const exports = {};
 
-  // Mock the runtime module
-  const runtimeMock = require('../src/runtime');
-
   // https://stackoverflow.com/questions/38332094/how-can-i-mock-webpacks-require-context-in-jest
   require.context = require.context = (base = '.') => {
     const files = [];
@@ -52,23 +52,9 @@ function evaluate(output) {
     return Object.assign(require, {keys: () => files});
   };
 
-  // Create a custom require function that can resolve the runtime module
-  const customRequire = (id) => {
-    if (id === './src/runtime.js' || id === '@markdoc/next.js/runtime') {
-      return runtimeMock;
-    }
-    return require(id);
-  };
-
-  // Copy essential properties from the original require
-  customRequire.resolve = require.resolve;
-  customRequire.cache = require.cache;
-  customRequire.extensions = require.extensions;
-  customRequire.context = require.context;
-
   vm.runInNewContext(code, {
     exports,
-    require: customRequire,
+    require,
     console,
   });
 

@@ -58,8 +58,6 @@ async function load(source) {
     nextjsExports = ['metadata', 'revalidate'],
     appDir = false,
     pagesDir,
-    // Turbopack compatibility: these might not be available
-    nextRuntime,
   } = this.getOptions() || {};
 
   const tokenizer = new Markdoc.Tokenizer(options);

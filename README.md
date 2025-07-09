@@ -45,43 +45,11 @@ The first thing you'll need to do is install `@markdoc/next.js` and add it to yo
    # Get started with Markdoc
    ```
 
+See [our docs](https://markdoc.dev/docs/nextjs) for more options.
+
 ## Turbopack Support
 
-This plugin now supports **Turbopack**, Next.js's new Rust-based bundler. The plugin automatically works with both webpack (default) and Turbopack without any configuration changes.
-
-### Using with Turbopack
-
-To use Turbopack in development, add the `--turbopack` flag to your dev script:
-
-```json
-{
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start"
-  }
-}
-```
-
-The same `next.config.js` configuration works for both webpack and Turbopack:
-
-```js
-// next.config.js - Works with both webpack and Turbopack
-
-const withMarkdoc = require('@markdoc/next.js');
-
-module.exports = withMarkdoc({
-  // Your Markdoc options here
-  mode: 'static',
-  schemaPath: './markdoc',
-})({
-  pageExtensions: ['js', 'md', 'mdoc'],
-});
-```
-
-The plugin automatically detects whether you're using webpack or Turbopack and configures the appropriate loader system.
-
-See [our docs](https://markdoc.dev/docs/nextjs) for more options.
+This plugin works with both Turbopack https://nextjs.org/docs/app/api-reference/turbopack and Webpack, without any configuration changes.
 
 ## Contributing
 

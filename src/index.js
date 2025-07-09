@@ -2,22 +2,10 @@ const withMarkdoc =
   (pluginOptions = {}) =>
   (nextConfig = {}) => {
     const extension = pluginOptions.extension || /\.(md|mdoc)$/;
-    
     // Convert regex to string pattern for Turbopack
-    const getExtensionPattern = (ext) => {
-      if (ext instanceof RegExp) {
-        // Extract extensions from regex pattern like /\.(md|mdoc)$/
-        const match = ext.source.match(/\\\.\(([^)]+)\)\$?/);
-        if (match) {
-          return match[1].split('|').map(e => `*.${e}`);
-        }
-        // Fallback for other regex patterns
-        return ['*.md', '*.mdoc'];
-      }
-      return [ext];
-    };
-
-    const extensionPatterns = getExtensionPattern(extension);
+    const extensionPatterns = extension instanceof RegExp
+      ? (extension.source.match(/\\\.\(([^)]+)\)\$?/)?.[1]?.split('|').map(e => `*.${e}`) || ['*.md', '*.mdoc'])
+      : [extension];
     
     // Create Turbopack rules for each extension pattern
     const turbopackRules = {};
@@ -49,7 +37,6 @@ const withMarkdoc =
                 pagesDir: options.defaultLoaders.babel.options.pagesDir,
                 ...pluginOptions,
                 dir: options.dir,
-                nextRuntime: options.nextRuntime,
               },
             },
           ],
