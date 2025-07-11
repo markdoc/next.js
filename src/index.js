@@ -50,13 +50,13 @@ const withMarkdoc =
       },
       
       // Add Turbopack configuration
-      turbopack: {
+      turbopack: nextConfig.turbopack ? {
         ...nextConfig.turbopack,
         rules: {
-          ...nextConfig.turbopack?.rules,
+          ...nextConfig.turbopack.rules,
           ...turbopackRules,
         },
-      },
+      } : undefined,
     });
   };
 
