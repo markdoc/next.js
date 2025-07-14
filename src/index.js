@@ -2,7 +2,7 @@ const withMarkdoc =
   (pluginOptions = {}) =>
   (nextConfig = {}) => {
     const extension = pluginOptions.extension || /\.(md|mdoc)$/;
-    // Convert regex to string pattern for Turbopack
+    // Extract file extensions from regex pattern like /\.(md|mdoc)$/ to create glob patterns for Turbopack
     const extensionPatterns = extension instanceof RegExp
       ? (extension.source.match(/\\\.\(([^)]+)\)\$?/)?.[1]?.split('|').map(e => `*.${e}`) || ['*.md', '*.mdoc'])
       : [extension];
@@ -50,13 +50,13 @@ const withMarkdoc =
       },
       
       // Add Turbopack configuration
-      turbopack: nextConfig.turbopack ? {
+      turbopack: {
         ...nextConfig.turbopack,
         rules: {
-          ...nextConfig.turbopack.rules,
+          ...nextConfig.turbopack?.rules,
           ...turbopackRules,
         },
-      } : undefined,
+      },
     });
   };
 

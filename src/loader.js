@@ -62,11 +62,8 @@ async function load(source) {
 
   const tokenizer = new Markdoc.Tokenizer(options);
   const parseOptions = {slots};
-
-
-  // Fallback for dir when not provided (Turbopack compatibility)
-  const rootDir = dir || process.cwd();
-  const schemaDir = path.resolve(rootDir, schemaPath || DEFAULT_SCHEMA_PATH);
+  const projectDir = dir || process.cwd();
+  const schemaDir = path.resolve(projectDir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, parseOptions);
 
