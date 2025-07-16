@@ -274,6 +274,9 @@ test('Turbopack configuration', () => {
   // Test basic Turbopack configuration
   const config = withMarkdoc()({
     pageExtensions: ['js', 'md', 'mdoc'],
+    turbopack: {
+      rules: {},
+    },
   });
   
   expect(config.turbopack).toBeDefined();
@@ -308,6 +311,9 @@ test('Turbopack configuration', () => {
     extension: /\.(markdown|mdx)$/,
   })({
     pageExtensions: ['js', 'markdown', 'mdx'],
+    turbopack: {
+      rules: {},
+    },
   });
   
   expect(configWithCustomExt.turbopack.rules['*.markdown']).toBeDefined();

@@ -62,8 +62,7 @@ async function load(source) {
 
   const tokenizer = new Markdoc.Tokenizer(options);
   const parseOptions = {slots};
-  const projectDir = dir || process.cwd();
-  const schemaDir = path.resolve(projectDir, schemaPath || DEFAULT_SCHEMA_PATH);
+  const schemaDir = path.resolve(dir, schemaPath || DEFAULT_SCHEMA_PATH);
   const tokens = tokenizer.tokenize(source);
   const ast = Markdoc.parse(tokens, parseOptions);
 

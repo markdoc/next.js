@@ -14,6 +14,8 @@ The first thing you'll need to do is install `@markdoc/next.js` and add it to yo
    ```
 2. Open `next.config.js` and add the following code:
 
+   When using Webpack:
+
    ```js
    // next.config.js
 
@@ -21,6 +23,23 @@ The first thing you'll need to do is install `@markdoc/next.js` and add it to yo
 
    module.exports = withMarkdoc(/* options */)({
      pageExtensions: ['js', 'md'],
+   });
+   ```
+
+   For Turbopack support, add the following configuration:
+
+     ```js
+   // next.config.js
+
+   const withMarkdoc = require('@markdoc/next.js');
+
+   module.exports = withMarkdoc({
+         dir: process.cwd() // Required for Turbopack file resolution
+      })({
+      pageExtensions: ['js', 'md'],
+         turbopack: {
+            rules: {}, // Empty rules object forces our plugin to create config
+      },
    });
    ```
 
@@ -49,7 +68,7 @@ See [our docs](https://markdoc.dev/docs/nextjs) for more options.
 
 ## Turbopack support
 
-This plugin works with both Turbopack https://nextjs.org/docs/app/api-reference/turbopack and Webpack, without any configuration changes.
+This plugin works with both Turbopack https://nextjs.org/docs/app/api-reference/turbopack and Webpack.
 
 ## Contributing
 
