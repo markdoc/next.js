@@ -47,7 +47,7 @@ The first thing you'll need to do is install `@markdoc/next.js` and add it to yo
 
 See [our docs](https://markdoc.dev/docs/nextjs) for more options.
 
-## Turbopack Support
+## Turbopack support
 
 This plugin works with both Turbopack https://nextjs.org/docs/app/api-reference/turbopack and Webpack, without any configuration changes.
 
