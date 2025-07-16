@@ -1,27 +1,41 @@
+function createTurbopackConfig(nextConfig, extension) {
+  // Extract file extensions from regex pattern like /\.(md|mdoc)$/ to create glob patterns for Turbopack
+  const extensionPatterns =
+    extension instanceof RegExp
+      ? extension.source
+          .match(/\\\.\(([^)]+)\)\$?/)?.[1]
+          ?.split('|')
+          .map((e) => `*.${e}`) || ['*.md', '*.mdoc']
+      : [extension];
+
+  const rules = extensionPatterns.reduce((acc, pattern) => {
+    acc[pattern] = {
+      loaders: [
+        {
+          loader: require.resolve('./loader'),
+          options: {
+            ...pluginOptions,
+          },
+        },
+      ],
+      as: '*.js',
+    };
+    return acc;
+  }, {});
+
+  return {
+    ...nextConfig.turbopack,
+    rules: {
+      ...nextConfig.turbopack.rules,
+      ...rules,
+    },
+  };
+}
+
 const withMarkdoc =
   (pluginOptions = {}) =>
   (nextConfig = {}) => {
     const extension = pluginOptions.extension || /\.(md|mdoc)$/;
-    // Extract file extensions from regex pattern like /\.(md|mdoc)$/ to create glob patterns for Turbopack
-    const extensionPatterns = extension instanceof RegExp
-      ? (extension.source.match(/\\\.\(([^)]+)\)\$?/)?.[1]?.split('|').map(e => `*.${e}`) || ['*.md', '*.mdoc'])
-      : [extension];
-    
-    // Create Turbopack rules for each extension pattern
-    const turbopackRules = {};
-    extensionPatterns.forEach(pattern => {
-      turbopackRules[pattern] = {
-        loaders: [
-          {
-            loader: require.resolve('./loader'),
-            options: {
-              ...pluginOptions,
-            },
-          },
-        ],
-        as: '*.js',
-      };
-    });
 
     return Object.assign({}, nextConfig, {
       webpack(config, options) {
@@ -48,15 +62,8 @@ const withMarkdoc =
 
         return config;
       },
-      
-      // Add Turbopack configuration
-      turbopack: {
-        ...nextConfig.turbopack,
-        rules: {
-          ...nextConfig.turbopack?.rules,
-          ...turbopackRules,
-        },
-      },
+
+      turbopack: nextConfig.turbopack ? createTurbopackConfig(nextConfig, extension) : undefined,
     });
   };
 
