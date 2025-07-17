@@ -6,6 +6,9 @@ const React = require('react');
 const enhancedResolve = require('enhanced-resolve');
 const loader = require('../src/loader');
 
+// Mock the runtime module using Jest
+jest.mock('@markdoc/next.js/runtime', () => require('../src/runtime'), {virtual: true});
+
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
 
 // https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
@@ -263,4 +266,56 @@ test('import as frontend component', async () => {
   const output = await callLoader(o, source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
+});
+
+test('Turbopack configuration', () => {
+  const withMarkdoc = require('../src/index.js');
+  
+  // Test basic Turbopack configuration
+  const config = withMarkdoc()({
+    pageExtensions: ['js', 'md', 'mdoc'],
+    turbopack: {
+      rules: {},
+    },
+  });
+  
+  expect(config.turbopack).toBeDefined();
+  expect(config.turbopack.rules).toBeDefined();
+  expect(config.turbopack.rules['*.md']).toBeDefined();
+  expect(config.turbopack.rules['*.mdoc']).toBeDefined();
+  
+  // Verify rule structure
+  const mdRule = config.turbopack.rules['*.md'];
+  expect(mdRule.loaders).toHaveLength(1);
+  expect(mdRule.loaders[0].loader).toContain('loader');
+  expect(mdRule.as).toBe('*.js');
+  
+  // Test that existing turbopack config is preserved
+  const configWithExisting = withMarkdoc()({
+    pageExtensions: ['js', 'md'],
+    turbopack: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  });
+  
+  expect(configWithExisting.turbopack.rules['*.svg']).toBeDefined();
+  expect(configWithExisting.turbopack.rules['*.md']).toBeDefined();
+  
+  // Test custom extension
+  const configWithCustomExt = withMarkdoc({
+    extension: /\.(markdown|mdx)$/,
+  })({
+    pageExtensions: ['js', 'markdown', 'mdx'],
+    turbopack: {
+      rules: {},
+    },
+  });
+  
+  expect(configWithCustomExt.turbopack.rules['*.markdown']).toBeDefined();
+  expect(configWithCustomExt.turbopack.rules['*.mdx']).toBeDefined();
 });
