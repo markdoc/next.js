@@ -8,16 +8,6 @@ function normalize(s) {
   return s.replace(/\\/g, path.win32.sep.repeat(2));
 }
 
-function getRelativeImportPath(from, to) {
-  const relative = path.relative(path.dirname(from), to);
-  if (!relative) {
-    return './';
-  }
-
-  const request = relative.startsWith('.') ? relative : `./${relative}`;
-  return normalize(request);
-}
-
 async function gatherPartials(ast, schemaDir, tokenizer, parseOptions) {
   let partials = {};
 
@@ -77,7 +67,7 @@ async function load(source) {
   const ast = Markdoc.parse(tokens, parseOptions);
 
   // Determine if this is a page file by checking if it starts with the provided directories
-  const isPage = (appDir && this.resourcePath.startsWith(appDir)) ||
+  const isPage = (appDir && this.resourcePath.startsWith(appDir)) || 
                  (pagesDir && this.resourcePath.startsWith(pagesDir));
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
@@ -103,34 +93,14 @@ async function load(source) {
     const directoryExists = await fs.promises.stat(schemaDir);
 
     // This creates import strings that cause the config to be imported runtime
-    const importAtRuntime = async (variable) => {
-      const requests = [variable];
-
-      // Turbopack module resolution currently requires explicit relative paths
-      // when `preferRelative` is used with bare specifiers (e.g. `tags`).
-      if (
-        typeof variable === 'string' &&
-        !variable.startsWith('.') &&
-        !variable.startsWith('/')
-      ) {
-        requests.push(`./${variable}`);
+    async function importAtRuntime(variable) {
+      try {
+        const module = await resolve(schemaDir, variable);
+        return `import * as ${variable} from '${normalize(module)}'`;
+      } catch (error) {
+        return `const ${variable} = {};`;
       }
-
-      let lastError;
-
-      for (const request of requests) {
-        try {
-          const module = await resolve(schemaDir, request);
-          const modulePath = getRelativeImportPath(this.resourcePath, module);
-          return `import * as ${variable} from '${modulePath}'`;
-        } catch (error) {
-          lastError = error;
-        }
-      }
-
-      console.debug('[Markdoc loader] Failed to resolve', { schemaDir, variable, error: lastError });
-      return `const ${variable} = {};`;
-    };
+    }
 
     if (directoryExists) {
       schemaCode = `

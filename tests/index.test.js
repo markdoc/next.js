@@ -2,7 +2,6 @@ const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
 const babel = require('@babel/core');
-const Module = require('module');
 const React = require('react');
 const enhancedResolve = require('enhanced-resolve');
 const loader = require('../src/loader');
@@ -11,8 +10,6 @@ const loader = require('../src/loader');
 jest.mock('@markdoc/next.js/runtime', () => require('../src/runtime'), {virtual: true});
 
 const source = fs.readFileSync(require.resolve('./fixture.md'), 'utf-8');
-const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
-const consoleDebugMock = jest.spyOn(console, 'debug').mockImplementation(() => {});
 
 // https://stackoverflow.com/questions/53799385/how-can-i-convert-a-windows-path-to-posix-path-using-node-path
 function normalizeAbsolutePath(s) {
@@ -30,8 +27,12 @@ function normalizeOperatingSystemPaths(s) {
     .replace(/\/r\/n/g, '\\n');
 }
 
-function createRequireContext(requireFn) {
-  return (base = '.') => {
+function evaluate(output) {
+  const {code} = babel.transformSync(output);
+  const exports = {};
+
+  // https://stackoverflow.com/questions/38332094/how-can-i-mock-webpacks-require-context-in-jest
+  require.context = require.context = (base = '.') => {
     const files = [];
 
     function readDirectory(directory) {
@@ -48,56 +49,20 @@ function createRequireContext(requireFn) {
 
     readDirectory(path.resolve(__dirname, base));
 
-    return Object.assign(requireFn, {keys: () => files});
+    return Object.assign(require, {keys: () => files});
   };
-}
-
-function evaluate(output, filename = path.join(__dirname, 'pages/test/index.md')) {
-  const {code} = babel.transformSync(output, {filename});
-
-  const resourceRequire = Module.createRequire(filename);
-  const baseRequire = require;
-
-  const customRequire = (specifier) => {
-    if (specifier.startsWith('.') || specifier.startsWith('/')) {
-      return resourceRequire(specifier);
-    }
-
-    return baseRequire(specifier);
-  };
-
-  customRequire.resolve = (specifier) => {
-    if (specifier.startsWith('.') || specifier.startsWith('/')) {
-      return resourceRequire.resolve(specifier);
-    }
-
-    return baseRequire.resolve(specifier);
-  };
-
-  customRequire.cache = baseRequire.cache;
-  customRequire.main = baseRequire.main;
-  customRequire.extensions = baseRequire.extensions;
-  customRequire.paths = baseRequire.paths;
-
-  const context = createRequireContext(customRequire);
-  customRequire.context = context;
-  require.context = context;
-
-  const exports = {};
-  const module = {exports};
 
   vm.runInNewContext(code, {
     exports,
-    module,
-    require: customRequire,
+    require,
     console,
   });
 
-  return module.exports;
+  return exports;
 }
 
 function options(config = {}) {
-  const dir = path.join(__dirname, config.appDir ? 'app' : 'pages');
+  const dir = `${'/Users/someone/a-next-js-repo'}/${config.appDir ? 'app' : 'pages'}`;
 
   const webpackThis = {
     context: __dirname,
@@ -122,7 +87,7 @@ function options(config = {}) {
           resolve(context, file, (err, result) => (err ? rej(err) : res(result)))
         ).then(normalizeAbsolutePath);
     },
-    resourcePath: path.join(dir, 'test', 'index.md'),
+    resourcePath: dir + '/test/index.md',
   };
 
   return webpackThis;
@@ -152,14 +117,13 @@ test('should fail build if invalid `schemaPath` is used', async () => {
 });
 
 test('file output is correct', async () => {
-  const webpackThis = options();
-  const output = await callLoader(webpackThis, source);
+  const output = await callLoader(options(), source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
 
-  const page = evaluate(output, webpackThis.resourcePath);
+  const page = evaluate(output);
 
-  expect(page).toEqual({
+  expect(evaluate(output)).toEqual({
     default: expect.any(Function),
     getStaticProps: expect.any(Function),
     markdoc: {
@@ -198,14 +162,13 @@ test('file output is correct', async () => {
 });
 
 test('app router', async () => {
-  const webpackThis = options({appDir: true});
-  const output = await callLoader(webpackThis, source);
+  const output = await callLoader(options({appDir: true}), source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
 
-  const page = evaluate(output, webpackThis.resourcePath);
+  const page = evaluate(output);
 
-  expect(page).toEqual({
+  expect(evaluate(output)).toEqual({
     default: expect.any(Function),
     markdoc: {
       frontmatter: {
@@ -220,9 +183,8 @@ test('app router', async () => {
 });
 
 test('app router metadata', async () => {
-  const webpackThis = options({appDir: true});
   const output = await callLoader(
-    webpackThis,
+    options({appDir: true}),
     source.replace('---', '---\nmetadata:\n  title: Metadata title')
   );
 
@@ -237,10 +199,9 @@ test.each([
   ['schemas/files', 'markdoc2'],
   ['schemas/typescript', source],
 ])('Custom schema path ("%s")', async (schemaPath, expectedChild) => {
-  const webpackThis = options({schemaPath});
-  const output = await callLoader(webpackThis, source);
+  const output = await callLoader(options({schemaPath}), source);
 
-  const page = evaluate(output, webpackThis.resourcePath);
+  const page = evaluate(output);
 
   const data = await page.getStaticProps({});
   expect(data.props.markdoc.content.children[0].children[0]).toEqual('Custom title');
@@ -248,65 +209,28 @@ test.each([
 });
 
 test('Partials', async () => {
-  const webpackThis = options({schemaPath: './schemas/partials'});
   const output = await callLoader(
-    webpackThis,
+    options({schemaPath: './schemas/partials'}),
     `${source}\n{% partial file="footer.md" /%}`
   );
 
-  const page = evaluate(output, webpackThis.resourcePath);
+  const page = evaluate(output);
 
   const data = await page.getStaticProps({});
   expect(data.props.markdoc.content.children[1].children[0]).toEqual('footer');
 });
 
 test('Ejected config', async () => {
-  const webpackThis = options({schemaPath: './schemas/ejectedConfig'});
   const output = await callLoader(
-    webpackThis,
+    options({schemaPath: './schemas/ejectedConfig'}),
     `${source}\n{% $product %}`
   );
 
-  const page = evaluate(output, webpackThis.resourcePath);
+  const page = evaluate(output);
 
   const data = await page.getStaticProps({});
   expect(data.props.markdoc.content.children[1]).toEqual('Extra value');
   expect(data.props.markdoc.content.children[2].children[0]).toEqual('meal');
-});
-
-test('falls back to relative schema imports when bare specifiers fail', async () => {
-  const schemaDir = path.resolve(__dirname, 'schemas/files');
-  const resolveRequests = [];
-  const webpackThis = {
-    ...options({schemaPath: './schemas/files'}),
-  };
-
-  webpackThis.getResolve = () => async (_context, request) => {
-    resolveRequests.push(request);
-    const target = {
-      './tags': path.join(schemaDir, 'tags.js'),
-      './nodes': path.join(schemaDir, 'nodes.js'),
-      config: path.join(schemaDir, 'config.js'),
-      './config': path.join(schemaDir, 'config.js'),
-      functions: path.join(schemaDir, 'functions.js'),
-      './functions': path.join(schemaDir, 'functions.js'),
-    }[request];
-
-    if (target) {
-      return normalizeAbsolutePath(target);
-    }
-
-    throw new Error(`Unable to resolve "${request}"`);
-  };
-
-  const output = await callLoader(webpackThis, source);
-
-  expect(resolveRequests).toEqual(
-    expect.arrayContaining(['tags', './tags', 'nodes', './nodes'])
-  );
-
-  const importMatch = output.match(/import \* as tags from '([^']+)'/);
-  expect(importMatch?.[1].startsWith('.')).toBe(true);
 });
 
 test('HMR', async () => {
@@ -322,10 +246,9 @@ test('HMR', async () => {
 });
 
 test('mode="server"', async () => {
-  const webpackThis = options({mode: 'server'});
-  const output = await callLoader(webpackThis, source);
+  const output = await callLoader(options({mode: 'server'}), source);
 
-  expect(evaluate(output, webpackThis.resourcePath)).toEqual({
+  expect(evaluate(output)).toEqual({
     default: expect.any(Function),
     getServerSideProps: expect.any(Function),
     markdoc: {
@@ -347,7 +270,7 @@ test('import as frontend component', async () => {
 
 test('Turbopack configuration', () => {
   const withMarkdoc = require('../src/index.js');
-
+  
   // Test basic Turbopack configuration
   const config = withMarkdoc()({
     pageExtensions: ['js', 'md', 'mdoc'],
@@ -355,18 +278,18 @@ test('Turbopack configuration', () => {
       rules: {},
     },
   });
-
+  
   expect(config.turbopack).toBeDefined();
   expect(config.turbopack.rules).toBeDefined();
   expect(config.turbopack.rules['*.md']).toBeDefined();
   expect(config.turbopack.rules['*.mdoc']).toBeDefined();
-
+  
   // Verify rule structure
   const mdRule = config.turbopack.rules['*.md'];
   expect(mdRule.loaders).toHaveLength(1);
   expect(mdRule.loaders[0].loader).toContain('loader');
   expect(mdRule.as).toBe('*.js');
-
+  
   // Test that existing turbopack config is preserved
   const configWithExisting = withMarkdoc()({
     pageExtensions: ['js', 'md'],
@@ -379,10 +302,10 @@ test('Turbopack configuration', () => {
       },
     },
   });
-
+  
   expect(configWithExisting.turbopack.rules['*.svg']).toBeDefined();
   expect(configWithExisting.turbopack.rules['*.md']).toBeDefined();
-
+  
   // Test custom extension
   const configWithCustomExt = withMarkdoc({
     extension: /\.(markdown|mdx)$/,
@@ -392,12 +315,7 @@ test('Turbopack configuration', () => {
       rules: {},
     },
   });
-
+  
   expect(configWithCustomExt.turbopack.rules['*.markdown']).toBeDefined();
   expect(configWithCustomExt.turbopack.rules['*.mdx']).toBeDefined();
-});
-
-afterAll(() => {
-  consoleErrorMock.mockRestore();
-  consoleDebugMock.mockRestore();
 });
