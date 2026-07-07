@@ -338,8 +338,12 @@ test('mode="server"', async () => {
 
 test('import as frontend component', async () => {
   const o = options();
-  // Use a non-page pathway
-  o.resourcePath = o.resourcePath.replace('pages/test/index.md', 'components/table.md');
+  // Use a non-page pathway (join with OS-native separators so the replace
+  // also matches the backslash resourcePath on Windows)
+  o.resourcePath = o.resourcePath.replace(
+    path.join('pages', 'test', 'index.md'),
+    path.join('components', 'table.md')
+  );
   const output = await callLoader(o, source);
 
   expect(normalizeOperatingSystemPaths(output)).toMatchSnapshot();
