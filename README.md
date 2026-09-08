@@ -32,10 +32,17 @@ The first thing you'll need to do is install `@markdoc/next.js` and add it to yo
    // next.config.js
    module.exports = withMarkdoc({
      dir: process.cwd(), // Required for Turbopack file resolution
+     schemaPath: './markdoc', // Wherever your Markdoc schema lives
    })({
      pageExtensions: ['js', 'md'],
+     turbopack: {}, // Turbopack only runs the loader when a base config exists
    });
    ```
+
+   Turbopack currently requires every schema entry file referenced by `schemaPath` to exist,
+   even if you are not customizing them yet. Create `config.js`, `nodes.js`, `tags.js`, and
+   `functions.js` in that directory (exporting empty objects is fine) so the loader can resolve
+   them during the build.
 
 3. Create a new Markdoc file in `pages/docs` named `getting-started.md`.
 

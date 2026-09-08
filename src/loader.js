@@ -4,8 +4,17 @@ const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
-function normalize(s) {
-  return s.replace(/\\/g, path.win32.sep.repeat(2));
+function getRelativeImportPath(from, to) {
+  const relative = path.relative(path.dirname(from), to);
+  if (!relative) {
+    return './';
+  }
+
+  // Module specifiers must use forward slashes on all platforms.
+  // Backslashes (or escaped versions) cause different loader output per OS
+  // and are not treated as path delimiters by bundlers.
+  const request = relative.split(path.sep).join(path.posix.sep);
+  return request.startsWith('.') ? request : `./${request}`;
 }
 
 async function gatherPartials(ast, schemaDir, tokenizer, parseOptions) {
@@ -67,7 +76,7 @@ async function load(source) {
   const ast = Markdoc.parse(tokens, parseOptions);
 
   // Determine if this is a page file by checking if it starts with the provided directories
-  const isPage = (appDir && this.resourcePath.startsWith(appDir)) || 
+  const isPage = (appDir && this.resourcePath.startsWith(appDir)) ||
                  (pagesDir && this.resourcePath.startsWith(pagesDir));
 
   // Grabs the path of the file relative to the `/{app,pages}` directory
@@ -75,7 +84,12 @@ async function load(source) {
   // This array access @ index 1 is safe since Next.js guarantees that
   // all pages will be located under either {app,pages}/ or src/{app,pages}/
   // https://nextjs.org/docs/app/building-your-application/configuring/src-directory
-  const filepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
+  // Normalize to posix separators for consistent output across platforms.
+  // Undefined for non-page resources (e.g., .md imported as components).
+  const rawFilepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
+  const filepath = rawFilepath
+    ? rawFilepath.split(path.sep).join(path.posix.sep)
+    : rawFilepath;
 
   const partials = await gatherPartials.call(
     this,
@@ -93,14 +107,34 @@ async function load(source) {
     const directoryExists = await fs.promises.stat(schemaDir);
 
     // This creates import strings that cause the config to be imported runtime
-    async function importAtRuntime(variable) {
-      try {
-        const module = await resolve(schemaDir, variable);
-        return `import * as ${variable} from '${normalize(module)}'`;
-      } catch (error) {
-        return `const ${variable} = {};`;
+    const importAtRuntime = async (variable) => {
+      const requests = [variable];
+
+      // Turbopack module resolution currently requires explicit relative paths
+      // when `preferRelative` is used with bare specifiers (e.g. `tags`).
+      if (
+        typeof variable === 'string' &&
+        !variable.startsWith('.') &&
+        !variable.startsWith('/')
+      ) {
+        requests.push(`./${variable}`);
       }
-    }
+
+      let lastError;
+
+      for (const request of requests) {
+        try {
+          const module = await resolve(schemaDir, request);
+          const modulePath = getRelativeImportPath(this.resourcePath, module);
+          return `import * as ${variable} from '${modulePath}'`;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      console.debug('[Markdoc loader] Failed to resolve', { schemaDir, variable, error: lastError });
+      return `const ${variable} = {};`;
+    };
 
     if (directoryExists) {
       schemaCode = `
