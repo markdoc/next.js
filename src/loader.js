@@ -4,18 +4,17 @@ const Markdoc = require('@markdoc/markdoc');
 
 const DEFAULT_SCHEMA_PATH = './markdoc';
 
-function normalize(s) {
-  return s.replace(/\\/g, path.win32.sep.repeat(2));
-}
-
 function getRelativeImportPath(from, to) {
   const relative = path.relative(path.dirname(from), to);
   if (!relative) {
     return './';
   }
 
-  const request = relative.startsWith('.') ? relative : `./${relative}`;
-  return normalize(request);
+  // Module specifiers must use forward slashes on all platforms.
+  // Backslashes (or escaped versions) cause different loader output per OS
+  // and are not treated as path delimiters by bundlers.
+  const request = relative.split(path.sep).join(path.posix.sep);
+  return request.startsWith('.') ? request : `./${request}`;
 }
 
 async function gatherPartials(ast, schemaDir, tokenizer, parseOptions) {
@@ -85,7 +84,12 @@ async function load(source) {
   // This array access @ index 1 is safe since Next.js guarantees that
   // all pages will be located under either {app,pages}/ or src/{app,pages}/
   // https://nextjs.org/docs/app/building-your-application/configuring/src-directory
-  const filepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
+  // Normalize to posix separators for consistent output across platforms.
+  // Undefined for non-page resources (e.g., .md imported as components).
+  const rawFilepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
+  const filepath = rawFilepath
+    ? rawFilepath.split(path.sep).join(path.posix.sep)
+    : rawFilepath;
 
   const partials = await gatherPartials.call(
     this,
