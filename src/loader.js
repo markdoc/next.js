@@ -10,11 +10,9 @@ function getRelativeImportPath(from, to) {
     return './';
   }
 
-  // Module specifiers always use forward slashes, on every platform.
-  // Emitting Windows separators (or escaping them, as the old `normalize`
-  // helper did for absolute paths) produces per-OS-different loader output —
-  // the Windows snapshot failure that got #67 reverted — and separators that
-  // bundlers do not treat as path delimiters.
+  // Module specifiers must use forward slashes on all platforms.
+  // Backslashes (or escaped versions) cause different loader output per OS
+  // and are not treated as path delimiters by bundlers.
   const request = relative.split(path.sep).join(path.posix.sep);
   return request.startsWith('.') ? request : `./${request}`;
 }
@@ -86,9 +84,8 @@ async function load(source) {
   // This array access @ index 1 is safe since Next.js guarantees that
   // all pages will be located under either {app,pages}/ or src/{app,pages}/
   // https://nextjs.org/docs/app/building-your-application/configuring/src-directory
-  // Normalized to posix separators so the emitted `path` value is identical
-  // on every platform (Windows resourcePaths contain backslashes). Undefined
-  // for resources outside {app,pages}/, e.g. .md files imported as components.
+  // Normalize to posix separators for consistent output across platforms.
+  // Undefined for non-page resources (e.g., .md imported as components).
   const rawFilepath = this.resourcePath.split(appDir ? 'app' : 'pages')[1];
   const filepath = rawFilepath
     ? rawFilepath.split(path.sep).join(path.posix.sep)
