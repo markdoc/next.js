@@ -22,7 +22,7 @@
     "@markdoc/markdoc": "*",
     "@types/jest": "^27.4.1",
     "enhanced-resolve": "^5.10.0",
-    "jest": "^27.5.1",
+    "jest": "^30.5.1",
     "next": "*",
     "react": "*",
     "ts-jest": "^27.1.3",
