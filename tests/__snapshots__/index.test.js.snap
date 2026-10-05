@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`HMR 1`] = `
 "import React from 'react';
@@ -13,15 +13,15 @@ import {getSchema, defaultObject} from '@markdoc/next.js/runtime';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
+const tokenizer = new Markdoc.Tokenizer({"allowComments":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
  */
-const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
-const filepath = \\"/test/index.md\\";
+const source = "---\\ntitle: Custom title\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% tag /%}\\n";
+const filepath = "/test/index.md";
 const tokens = tokenizer.tokenize(source);
-const parseOptions = {\\"slots\\":false};
+const parseOptions = {"slots":false};
 const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
@@ -110,15 +110,15 @@ import {getSchema, defaultObject} from '@markdoc/next.js/runtime';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
+const tokenizer = new Markdoc.Tokenizer({"allowComments":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
  */
-const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
-const filepath = \\"/test/index.md\\";
+const source = "---\\ntitle: Custom title\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% tag /%}\\n";
+const filepath = "/test/index.md";
 const tokens = tokenizer.tokenize(source);
-const parseOptions = {\\"slots\\":false};
+const parseOptions = {"slots":false};
 const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
@@ -202,15 +202,15 @@ import {getSchema, defaultObject} from '@markdoc/next.js/runtime';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
+const tokenizer = new Markdoc.Tokenizer({"allowComments":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
  */
-const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
-const filepath = \\"/test/index.md\\";
+const source = "---\\ntitle: Custom title\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% tag /%}\\n";
+const filepath = "/test/index.md";
 const tokens = tokenizer.tokenize(source);
-const parseOptions = {\\"slots\\":false};
+const parseOptions = {"slots":false};
 const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
@@ -299,15 +299,15 @@ import {getSchema, defaultObject} from '@markdoc/next.js/runtime';
  */
 const schema = {};
 
-const tokenizer = new Markdoc.Tokenizer({\\"allowComments\\":true});
+const tokenizer = new Markdoc.Tokenizer({"allowComments":true});
 
 /**
  * Source will never change at runtime, so parse happens at the file root
  */
-const source = \\"---\\\\ntitle: Custom title\\\\n---\\\\n\\\\n# {% $markdoc.frontmatter.title %}\\\\n\\\\n{% tag /%}\\\\n\\";
+const source = "---\\ntitle: Custom title\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% tag /%}\\n";
 const filepath = undefined;
 const tokens = tokenizer.tokenize(source);
-const parseOptions = {\\"slots\\":false};
+const parseOptions = {"slots":false};
 const ast = Markdoc.parse(tokens, parseOptions);
 
 /**
