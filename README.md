@@ -1,1 +1,1 @@
-> **Archived:** This repository is now archived. See [markdoc/markdoc](https://github.com/markdoc/markdoc) for the `@markdoc/next.js` package.
+> The `@markdoc/next.js` package has moved to [markdoc/markdoc](https://github.com/markdoc/markdoc/tree/main/packages/next.js).
